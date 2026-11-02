@@ -1,0 +1,116 @@
+title: Agentic DevOps Workshop
+description: Workshop documentation for practicing agentic development workflows.
+
+theme: just-the-docs
+color_scheme: blue
+
+# Local previews use the root path. The Pages workflow supplies both values
+# from the deployed site, including a project-site base path when needed.
+url: "https://isaru66.github.io"
+baseurl: ""
+
+plugins:
+  - jekyll-include-cache
+
+search_enabled: true
+heading_anchors: true
+
+aux_links:
+  GitHub repository: "https://github.com/isaru66/TechWorkshop-L300-AgenticDevOps-Speckit"
+
+# Only documentation and its assets belong in the site. These exclusions are
+# defense in depth; secrets should never be committed or stored under docs.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - LICENSE
+  - SECURITY.md
+  - SUPPORT.md
+  - CONTRIBUTING.md
+  - CODE_OF_CONDUCT.md
+  - .github
+  - .devcontainer
+  - .vscode
+  - .bundle
+  - .gradle
+  - .jekyll-cache
+  - .mvn
+  - .sass-cache
+  - node_modules
+  - vendor
+  - src
+  - infra
+  - scripts
+  - tests
+  - build
+  - dist
+  - target
+  - coverage
+  - config
+  - "**/config"
+  - secrets
+  - "**/secrets"
+  - package.json
+  - package-lock.json
+  - pnpm-lock.yaml
+  - yarn.lock
+  - pom.xml
+  - build.gradle
+  - build.gradle.kts
+  - settings.gradle
+  - settings.gradle.kts
+  - gradle.properties
+  - gradlew
+  - mvnw
+  - Pipfile
+  - Pipfile.lock
+  - pyproject.toml
+  - uv.lock
+  - "requirements*.txt"
+  - azure.yml
+  - azure.yaml
+  - Dockerfile
+  - "docker-compose*.yml"
+  - "docker-compose*.yaml"
+  - "compose*.yml"
+  - "compose*.yaml"
+  - Makefile
+  - ".env*"
+  - "**/.env*"
+  - "*.env"
+  - "*.csv"
+  - "*.CSV"
+  - "*.pem"
+  - "*.key"
+  - "*.p12"
+  - "*.pfx"
+  - "*.jks"
+  - "*.config"
+  - "*.config.*"
+  - "config*.json"
+  - "**/config*.json"
+  - "config*.yml"
+  - "**/config*.yml"
+  - "config*.yaml"
+  - "**/config*.yaml"
+  - "config*.toml"
+  - "**/config*.toml"
+  - "config*.ini"
+  - "**/config*.ini"
+  - "appsettings*.json"
+  - "**/appsettings*.json"
+  - "application*.yml"
+  - "**/application*.yml"
+  - "application*.yaml"
+  - "**/application*.yaml"
+  - "settings*.json"
+  - "**/settings*.json"
+  - "local.settings.json"
+  - "**/local.settings.json"
+  - "parameters*.json"
+  - "**/parameters*.json"
+  - "secrets.*"
+  - "**/secrets.*"
+  - "credentials.*"
+  - "**/credentials.*"

@@ -1,0 +1,58 @@
+// Keep the theme's standard responsive navigation and search behavior.
+.site-header,
+.side-bar + .main .main-header {
+  background-color: $link-color;
+  border-color: $link-color;
+}
+
+.site-header .site-title,
+.site-header .site-button,
+.site-header .site-button .icon,
+.main-header .aux-nav .site-button {
+  color: #fff;
+}
+
+.site-header .site-title {
+  // The theme's responsive font-size utility also uses !important.
+  font-size: 1rem !important;
+  font-weight: 600;
+
+  @include mq(md) {
+    padding-right: $gutter-spacing-sm;
+  }
+}
+
+.site-header .site-title:hover,
+.site-header .site-button:hover,
+.main-header .aux-nav .site-button:hover {
+  color: #fff;
+  background-color: #183a80;
+  background-image: none;
+}
+
+.site-header .site-title:focus-visible,
+.site-header .site-button:focus-visible,
+.main-header .aux-nav .site-button:focus-visible,
+.main-header .search-input:focus {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+}
+
+.main-header .search-input {
+  color: #fff;
+  background-color: $link-color;
+}
+
+.main-header .search-input::placeholder {
+  color: #e1eafb;
+  opacity: 1;
+}
+
+.main-header .search-label .search-icon,
+.main-header .search-input:focus + .search-label .search-icon {
+  color: #fff;
+}
+
+.nav-list .nav-list-item .nav-list-link.active {
+  box-shadow: inset 3px 0 0 $link-color;
+}

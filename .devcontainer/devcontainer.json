@@ -1,0 +1,57 @@
+{
+  "name": "Java, React, PostgreSQL and MCP workshop",
+  "image": "mcr.microsoft.com/devcontainers/base:2-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": true,
+      "mavenVersion": "3.9"
+    },
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "22",
+      "pnpmVersion": "none"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "os-provided",
+      "installTools": false
+    },
+    "ghcr.io/devcontainer-community/devcontainer-features/astral.sh-uv:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+  "init": true,
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
+  },
+  "forwardPorts": [8080, 5173, 5432, 4000],
+  "portsAttributes": {
+    "8080": {
+      "label": "Spring Boot"
+    },
+    "5173": {
+      "label": "React"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "4000": {
+      "label": "Workshop documentation",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "humao.rest-client",
+        "ms-ossdata.vscode-pgsql"
+      ]
+    }
+  }
+}
