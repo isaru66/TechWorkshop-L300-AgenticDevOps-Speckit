@@ -27,9 +27,3 @@ After you complete this exercise, you will be able to:
 ## Duration
 
 * **Estimated Time:** 10 minutes
-
-## Tasks
-
-1. [Prepare a workspace]({% link docs/01_setup_development_environment/01_01.md %})
-2. [Install or verify prerequisites]({% link docs/01_setup_development_environment/01_02.md %})
-3. [Check tools and Copilot access]({% link docs/01_setup_development_environment/01_03.md %})
