@@ -8,14 +8,15 @@ has_toc: true
 
 # Exercise 04: Specify and plan the banking API
 
-> **Placeholder content:** The scenario and acceptance criteria are examples to refine, not a finished product specification.
+> **Workshop scope:** Build a simple fictional banking API without user authentication. Run everything locally and never expose it publicly.
 
 ## Scenario
 
-Use the initialized Spec Kit workflow to define a small fictional banking API, then review its implementation plan before writing application code.
+Follow the short Spec Kit workflow: **01. Specify**, **02. Plan**, **03. Tasks**, **04. Implement**, and **05. Converge**. Build a simple banking API using seeded fictional accounts and simulated transactions. Run each skill separately in Copilot chat and review its result before continuing.
 
 ## Objectives
 
-- Define a bounded, fictional scenario and its safety constraints.
-- Create and review a testable specification.
-- Plan the Spring Boot, PostgreSQL, MCP, and React work as small tasks.
+- Specify the banking API behavior without user authentication.
+- Generate and review a technical plan and dependency-ordered tasks.
+- Implement and test the banking REST API and a simple ReactJS interface.
+- Converge the implementation against the approved specification, plan, and tasks.
