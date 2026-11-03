@@ -42,5 +42,5 @@ Bring a development environment where you can install the required tools and use
 4. [Specify and plan the banking API]({% link docs/04_specify_and_plan_banking_api/04_specify_and_plan_banking_api.md %})
 5. [Add an MCP server]({% link docs/05_implement_backend_and_mcp/05_implement_backend_and_mcp.md %})
 6. [Implement the frontend]({% link docs/06_implement_frontend/06_implement_frontend.md %})
-7. [Connect an MCP client]({% link docs/07_connect_mcp_client/07_connect_mcp_client.md %})
+7. [Test with MCP Inspector]({% link docs/07_connect_mcp_client/07_connect_mcp_client.md %})
 8. [Build agent skills]({% link docs/08_build_agent_skills/08_build_agent_skills.md %})

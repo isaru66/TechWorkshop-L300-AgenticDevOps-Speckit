@@ -1,21 +1,21 @@
 ---
-title: 'Exercise 07: Connect an MCP client'
+title: 'Exercise 07: Test with MCP Inspector'
 layout: default
 nav_order: 8
 has_children: true
 has_toc: true
 ---
 
-# Exercise 07: Connect an MCP client
+# Exercise 07: Test with MCP Inspector
 
-> **Placeholder content:** The client configuration is not supplied and will be created by participants.
+> **Workshop scope:** Inspect the existing local banking MCP server using fictional data and a read-only customer query.
 
 ## Scenario
 
-Connect VS Code to the MCP capability you implemented in the previous exercise, keeping the server private and the data fictional.
+Use MCP Inspector to connect to the banking MCP server built in Exercise 05. Open the Tools section, execute `list_customers`, and review the returned fictional customer records. Keep the banking server and Inspector local-only.
 
 ## Objectives
 
-- Understand the local server's transport and capabilities.
-- Add and review a VS Code MCP configuration.
-- Discover and safely test a fictional tool.
+- Launch MCP Inspector against the local Streamable HTTP endpoint.
+- Discover the banking tools and execute `list_customers`.
+- Compare the response with your demo data, allowing for differences in generated output.
