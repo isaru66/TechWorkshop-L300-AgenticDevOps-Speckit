@@ -14,13 +14,13 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       pages: read
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -30,7 +30,7 @@ jobs:
 
       - name: Configure GitHub Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Build the site
         env:
@@ -43,12 +43,12 @@ jobs:
           bundle exec jekyll build --config "_config.yml,$RUNNER_TEMP/pages-origin.yml" --baseurl "$PAGES_BASE_PATH"
 
       - name: Upload the site artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: build
     permissions:
       pages: write
@@ -59,4 +59,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
