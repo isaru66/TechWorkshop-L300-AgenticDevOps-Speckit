@@ -23,6 +23,13 @@ This is a standalone warm-up, separate from the workshop's banking application.
 Use original obstacle and background visuals rather than copying the original
 Flappy Bird artwork.
 
+## Sample output
+
+The animation below shows an example of the Copilot Flappy game. Your version
+may look different while meeting the exercise's acceptance criteria.
+
+![Sample output of the Copilot Flappy game](../../media/Solution/0204_copilot_flappy_example.gif)
+
 ## Prerequisites
 
 - VS Code (locally or in GitHub Codespaces) with GitHub Copilot access.
