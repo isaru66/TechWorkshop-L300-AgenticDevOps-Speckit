@@ -14,6 +14,7 @@ plugins:
 
 search_enabled: true
 heading_anchors: true
+enable_copy_code_button: false
 
 aux_links:
   GitHub repository: "https://github.com/isaru66/TechWorkshop-L300-AgenticDevOps-Speckit"

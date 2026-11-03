@@ -56,3 +56,78 @@
 .nav-list .nav-list-item .nav-list-link.active {
   box-shadow: inset 3px 0 0 $link-color;
 }
+
+.os-tabs {
+  margin: 1rem 0;
+  min-width: 0;
+
+  [hidden] {
+    display: none !important;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: $link-color;
+    background: $body-background-color;
+    border: 1px solid $border-color;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  button:focus-visible,
+  [role="tabpanel"]:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+  }
+
+  button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+
+  pre {
+    overflow-x: auto;
+  }
+}
+
+.os-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 2px solid $link-color;
+  padding-bottom: 0.25rem;
+
+  [aria-selected="true"] {
+    color: #fff;
+    background: $link-color;
+    font-weight: 600;
+  }
+}
+
+.os-tabs--ready .os-tabs__panel {
+  padding: 0.75rem;
+  border: 1px solid $border-color;
+
+  > :first-child + * {
+    margin-top: 0;
+  }
+}
+
+.os-tabs__copy-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.os-tabs__copy-status,
+.os-tabs__status {
+  font-size: 0.875rem;
+}
+
+.os-tabs__status:empty {
+  display: none;
+}

@@ -92,6 +92,52 @@ bundle exec jekyll serve
 
 Open the address printed by Jekyll. In a Codespace, use the forwarded port.
 
+## Authoring operating-system tabs
+
+Use the shared `os-tabs.html` include for instructions that differ between
+Windows, macOS, and Linux / GitHub Codespaces. Keep identical commands outside
+the tabs. In the Linux content, distinguish local installation from verification
+of preinstalled Codespaces tools.
+
+Capture each panel as Markdown, then pass the captures to the include:
+
+````liquid
+{% capture windows %}
+```powershell
+python --version
+```
+{% endcapture %}
+{% capture macos %}
+```bash
+python3 --version
+```
+{% endcapture %}
+{% capture linux %}
+Python is already installed in the workshop Codespace.
+
+```bash
+python3 --version
+```
+{% endcapture %}
+{% include os-tabs.html id="python-check" label="Check Python version" windows=windows macos=macos linux=linux %}
+````
+
+Supply all three panels and a descriptive `label`. Use a unique, lowercase,
+hyphenated `id` per group on each page. Keep capture/include tags on separate
+lines with blank lines around fenced code. The include renders Markdown, so do
+not pre-render captures with `markdownify`. It can be used inside the existing
+`<details markdown="block">` solutions; do not nest tab groups.
+
+Tabs detect the initial browser OS (Windows fallback), synchronize on each page,
+and remember explicit selections across pages. Select Linux / GitHub Codespaces
+manually when working in a Codespace from a Windows or Mac browser. Without
+JavaScript, all panels remain readable.
+
+Copy buttons appear only inside OS tabs. They copy the exact code text using the
+Clipboard API on HTTPS or localhost, with explicit success/failure feedback and
+a manual selection option when copying is denied. The theme's global copy
+buttons are disabled to prevent duplicate controls.
+
 ## Publishing the documentation
 
 To publish the guide for a repository where you have administrative access,

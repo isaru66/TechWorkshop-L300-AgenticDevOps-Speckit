@@ -1,0 +1,16 @@
+{% assign platforms = "windows|macos|linux" | split: "|" %}
+{% assign labels = "Windows|macOS|Linux / GitHub Codespaces" | split: "|" %}
+<div class="os-tabs" data-os-tabs markdown="0">
+  <div class="os-tabs__list" role="tablist" aria-label="{{ include.label | escape }}" hidden>
+    {% for platform in platforms %}
+    <button type="button" role="tab" id="{{ include.id | escape }}-tab-{{ platform }}" aria-controls="{{ include.id | escape }}-panel-{{ platform }}" aria-selected="false" tabindex="-1" data-os="{{ platform }}">{{ labels[forloop.index0] }}</button>
+    {% endfor %}
+  </div>
+  {% for platform in platforms %}
+  <section class="os-tabs__panel" id="{{ include.id | escape }}-panel-{{ platform }}" data-os-panel="{{ platform }}" aria-labelledby="{{ include.id | escape }}-heading-{{ platform }}">
+    <h4 class="os-tabs__heading" id="{{ include.id | escape }}-heading-{{ platform }}">{{ labels[forloop.index0] }}</h4>
+    {{ include[platform] | markdownify }}
+  </section>
+  {% endfor %}
+  <p class="os-tabs__status" role="status" aria-live="polite" aria-atomic="true"></p>
+</div>
