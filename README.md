@@ -40,7 +40,9 @@ workshop.
 
 You need a GitHub account with access to this repository and permission to
 create a Codespace. Use **Code > Codespaces > Create codespace**, then allow
-the repository's development container to finish setting up. The planned
+the repository's development container to finish setting up. Container
+creation also installs the Specify CLI (Spec Kit `v1.2.6`) with `uv`; it does
+not run `specify init`. The planned
 GitHub Copilot exercises require Copilot access, which may depend on your
 account's entitlement or subscription.
 
@@ -61,8 +63,9 @@ the exercises:
   their own Compose configuration during the workshop; none is supplied
   here.
 
-In the relevant exercise, follow the guide to install Spec Kit with `uv` and
-initialize it with `specify init` in the working copy. Spec Kit is not
+When using the development container, the Specify CLI is installed
+automatically. Otherwise, in the relevant exercise, follow the guide to install
+Spec Kit with `uv`. In either case, initialize it with `specify init` in the working copy. Spec Kit is not
 initialized in this starter; do not assume generated specifications or agent
 instructions already exist.
 
