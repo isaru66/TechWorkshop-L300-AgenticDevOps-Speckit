@@ -45,12 +45,13 @@ Start with the [workshop home](index.md) or go directly to
 | [05. Implement the backend and MCP](docs/05_implement_backend_and_mcp/05_implement_backend_and_mcp.md) | Build and check the Spring Boot REST/MCP backend and local PostgreSQL setup. |
 | [06. Implement the frontend](docs/06_implement_frontend/06_implement_frontend.md) | Build accessible React views and connect them to the private backend. |
 | [07. Connect an MCP client](docs/07_connect_mcp_client/07_connect_mcp_client.md) | Configure VS Code to discover and safely test the local MCP capability. |
-| [08. Build agent skills](docs/08_build_agent_skills/08_build_agent_skills.md) | Adapt and test an appropriately licensed PPTX skill against a generic brief. |
+| [08. Build agent skills](docs/08_build_agent_skills/08_build_agent_skills.md) | Install a PPTX skill, create `blue-brand-pptx` from an approved sample PDF, and test a model-comparison deck. |
 
 **Content status:** Exercises 01-04 contain setup instructions and guided
-workflows. Exercises 05-08 are currently scaffolding and require facilitator
-review and expansion before delivery. No finished PPTX skill or presentation
-is supplied.
+workflows. Exercises 05-07 are currently scaffolding and require facilitator
+review and expansion before delivery. Exercise 08 provides a skill-building
+walkthrough and requires a customer-supplied, approved sample PDF. No finished
+PPTX skill or presentation is supplied.
 
 The [intended GitHub Pages site](https://isaru66.github.io/TechWorkshop-L300-AgenticDevOps-Speckit/)
 is available only after Pages is configured and the site is deployed. A fork

@@ -18,6 +18,8 @@ The application code, database seed content, Spec Kit project files, Compose fil
 
 ## Illustrative architecture
 
+![High-level application architecture]({{ '/media/Solution/app-highlevel-architecture.svg' | relative_url }})
+
 - The React frontend sends REST requests to the Spring Boot backend.
 - An MCP client interacts with the backend through its MCP interface.
 - The backend reads and writes fictional records in PostgreSQL.
