@@ -24,14 +24,6 @@ The application code, database seed content, Spec Kit project files, Compose fil
 - An MCP client interacts with the backend through its MCP interface.
 - The backend reads and writes fictional records in PostgreSQL.
 
-## Learning approach
-
-For each change, follow the same human-led sequence:
-
-1. **Plan:** Use GitHub Copilot Plan mode to explore the requirements and review an approach.
-2. **Build:** Implement the agreed, appropriately scoped change.
-3. **Review:** Inspect the changes, run checks, and correct issues before moving on.
-
 ## Prerequisites
 
 Bring a development environment where you can install the required tools and use VS Code and GitHub Copilot. The first exercise covers tool and access checks. A local container runtime is needed for the planned PostgreSQL exercise.
