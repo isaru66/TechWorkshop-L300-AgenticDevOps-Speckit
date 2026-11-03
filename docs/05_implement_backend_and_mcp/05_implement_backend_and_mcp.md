@@ -3,7 +3,7 @@ title: 'Exercise 05: Implement the backend and MCP'
 layout: default
 nav_order: 6
 has_children: true
-has_toc: false
+has_toc: true
 ---
 
 # Exercise 05: Implement the backend and MCP
@@ -19,9 +19,3 @@ Follow the reviewed plan to build a small Spring Boot REST/MCP backend backed by
 - Implement and check a bounded REST API.
 - Create a local Compose configuration for PostgreSQL and optionally add fictional CSV seed content later.
 - Add and verify a local MCP capability.
-
-## Tasks
-
-1. [Build the Spring Boot REST API]({% link docs/05_implement_backend_and_mcp/05_01.md %})
-2. [Add PostgreSQL and Compose]({% link docs/05_implement_backend_and_mcp/05_02.md %})
-3. [Implement an MCP capability]({% link docs/05_implement_backend_and_mcp/05_03.md %})
