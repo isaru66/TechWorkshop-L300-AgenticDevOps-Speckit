@@ -133,7 +133,9 @@ and remember explicit selections across pages. Select Linux / GitHub Codespaces
 manually when working in a Codespace from a Windows or Mac browser. Without
 JavaScript, all panels remain readable.
 
-Copy buttons appear only inside OS tabs. They copy the exact code text using the
+Just the Docs-style clipboard icons appear at the top-right of all code blocks
+on hover or keyboard focus (always visible on touch devices), both inside and
+outside OS tabs, including pages without tabs. They copy the exact code text using the
 Clipboard API on HTTPS or localhost, with explicit success/failure feedback and
 a manual selection option when copying is denied. The theme's global copy
 buttons are disabled to prevent duplicate controls.

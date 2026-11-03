@@ -1,6 +1,80 @@
 (() => {
   "use strict";
 
+  const icons = document.getElementById("code-copy-icons");
+  if (icons) document.body.append(icons.content.cloneNode(true));
+
+  document.querySelectorAll(".main-content pre").forEach((pre, index) => {
+    const code = pre.querySelector("code") || pre;
+    let block = pre.closest("div.highlighter-rouge, figure.highlight, div.listingblock > div.content");
+    if (!block) {
+      block = document.createElement("div");
+      pre.before(block);
+      block.append(pre);
+    }
+    block.classList.add("code-copy-block");
+    const controls = document.createElement("div");
+    controls.className = "code-copy-feedback";
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "code-copy-button";
+    copy.title = "Copy code";
+    copy.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#svg-copy"></use></svg>';
+    copy.setAttribute("aria-label", `Copy code block ${index + 1}`);
+    const icon = copy.querySelector("use");
+    let resetTimer;
+    const status = document.createElement("span");
+    status.className = "code-copy-status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    const manual = document.createElement("button");
+    manual.type = "button";
+    manual.textContent = "Select code";
+    manual.hidden = true;
+    manual.addEventListener("click", () => {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      pre.tabIndex = -1;
+      pre.focus();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      status.textContent = "Code selected. Press Ctrl+C (Windows/Linux) or Command+C (macOS).";
+    });
+    copy.addEventListener("click", async () => {
+      clearTimeout(resetTimer);
+      copy.disabled = true;
+      icon.setAttribute("href", "#svg-copy");
+      status.textContent = "Copying...";
+      manual.hidden = true;
+      controls.classList.remove("is-error");
+      try {
+        if (!window.isSecureContext || !navigator.clipboard?.writeText) {
+          throw new Error("Clipboard access requires HTTPS or localhost and a supported browser.");
+        }
+        await navigator.clipboard.writeText(code.textContent);
+        status.textContent = "Copied!";
+        copy.title = "Copied!";
+        icon.setAttribute("href", "#svg-copied");
+        resetTimer = setTimeout(() => {
+          icon.setAttribute("href", "#svg-copy");
+          copy.title = "Copy code";
+        }, 2000);
+      } catch (error) {
+        console.warn("Could not copy code to the clipboard.", error);
+        copy.title = "Copy failed";
+        status.textContent = "Copy failed. Use Select code, then copy with your keyboard.";
+        controls.classList.add("is-error");
+        manual.hidden = false;
+      } finally {
+        copy.disabled = false;
+      }
+    });
+    controls.append(status, manual);
+    block.append(copy);
+    block.after(controls);
+  });
+
   const groups = Array.from(document.querySelectorAll("[data-os-tabs]"));
   if (!groups.length) return;
 
@@ -71,55 +145,6 @@
         select(tabs[next].dataset.os, group);
         tabs[next].focus();
       });
-    });
-
-    group.querySelectorAll("pre > code").forEach((code, index) => {
-      const pre = code.parentElement;
-      const controls = document.createElement("div");
-      controls.className = "os-tabs__copy-controls";
-      const copy = document.createElement("button");
-      copy.type = "button";
-      copy.className = "os-tabs__copy";
-      copy.textContent = "Copy";
-      copy.setAttribute("aria-label", `Copy code block ${index + 1} in ${tablist.getAttribute("aria-label")}`);
-      const status = document.createElement("span");
-      status.className = "os-tabs__copy-status";
-      status.setAttribute("role", "status");
-      status.setAttribute("aria-live", "polite");
-      const manual = document.createElement("button");
-      manual.type = "button";
-      manual.textContent = "Select code";
-      manual.hidden = true;
-      manual.addEventListener("click", () => {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(code);
-        pre.tabIndex = -1;
-        pre.focus();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        status.textContent = "Code selected. Press Ctrl+C (Windows/Linux) or Command+C (macOS).";
-      });
-      copy.addEventListener("click", async () => {
-        copy.disabled = true;
-        status.textContent = "Copying...";
-        manual.hidden = true;
-        try {
-          if (!window.isSecureContext || !navigator.clipboard?.writeText) {
-            throw new Error("Clipboard access requires HTTPS or localhost and a supported browser.");
-          }
-          await navigator.clipboard.writeText(code.textContent);
-          status.textContent = "Copied!";
-        } catch (error) {
-          console.warn("Could not copy code to the clipboard.", error);
-          status.textContent = "Copy failed. Use Select code, then copy with your keyboard.";
-          manual.hidden = false;
-        } finally {
-          copy.disabled = false;
-        }
-      });
-      controls.append(copy, status, manual);
-      pre.before(controls);
     });
 
     tablist.hidden = false;
