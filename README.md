@@ -31,10 +31,9 @@ deposits, withdrawals and transfers, and transaction history.
   and configure a private MCP client.
 - Explore reusable agent skills using a generic, non-sensitive brief.
 
-## Workshop guide and exercise roadmap
+## Step by Step Instructions
 
-Start with the [workshop home](index.md) or go directly to
-[Exercise 01: Set up the development environment](docs/01_setup_development_environment/01_setup_development_environment.md).
+The step by step instructions for this lab can be found in the [AgenticDevOps-Speckit](https://isaru66.github.io/TechWorkshop-L300-AgenticDevOps-Speckit)
 
 | Exercise | Focus |
 |---|---|
@@ -52,10 +51,6 @@ workflows. Exercises 05-07 are currently scaffolding and require facilitator
 review and expansion before delivery. Exercise 08 provides a skill-building
 walkthrough and requires a customer-supplied, approved sample PDF. No finished
 PPTX skill or presentation is supplied.
-
-The [intended GitHub Pages site](https://isaru66.github.io/TechWorkshop-L300-AgenticDevOps-Speckit/)
-is available only after Pages is configured and the site is deployed. A fork
-or custom domain will have a different address.
 
 ## What is included
 
@@ -260,3 +255,11 @@ Publishing documentation does not deploy or secure the workshop application.
 See [SUPPORT.md](SUPPORT.md) for questions and [SECURITY.md](SECURITY.md) for
 private vulnerability reporting and safe use. This starter is distributed
 under the [MIT License](LICENSE).
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
+[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
+Any use of third-party trademarks or logos are subject to those third-party's policies.
