@@ -31,6 +31,9 @@ Bring a development environment where you can install the required tools and use
 ## Exercises
 
 1. [Set up the development environment]({% link docs/01_setup_development_environment/01_setup_development_environment.md %})
+
+   **Exercise 01 Alternative:** [Use GitHub Codespaces]({% link docs/01_alternative_github_codespaces/01_alternative_github_codespaces.md %})
+
 2. [Introduction to GitHub Copilot]({% link docs/02_intro_to_github_copilot/02_intro_to_github_copilot.md %})
 3. [Spec Kit fundamentals]({% link docs/03_spec_kit_fundamentals/03_spec_kit_fundamentals.md %})
 4. [Specify and plan the banking API]({% link docs/04_specify_and_plan_banking_api/04_specify_and_plan_banking_api.md %})

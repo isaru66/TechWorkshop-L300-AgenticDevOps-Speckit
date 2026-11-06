@@ -50,6 +50,8 @@ The development container also installs the **Specify CLI (Spec Kit `v1.2.6`)** 
 2. [Install prerequisite software](./01_02.md) - install the local tools or verify the tools already provided by Codespaces.
 3. [Check GitHub Copilot access](./01_03.md) - select the correct GitHub account and send a test message in Copilot Chat.
 
+For the illustrated cloud setup guide, follow [Exercise 01 Alternative: Use GitHub Codespaces](../01_alternative_github_codespaces/01_alternative_github_codespaces.md).
+
 ## Completion checklist
 
 - Your workshop copy is open in VS Code or a fully initialized Codespace.
