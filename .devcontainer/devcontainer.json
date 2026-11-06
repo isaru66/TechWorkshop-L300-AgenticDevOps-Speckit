@@ -25,7 +25,7 @@
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
   },
-  "postCreateCommand": "uv tool install --force specify-cli --from git+https://github.com/github/spec-kit.git@v1.2.6 && specify version",
+  "postCreateCommand": "uv tool install --force specify-cli --from git+https://github.com/github/spec-kit.git@v1.2.6 && specify version && npm install -g @github/copilot && copilot --version",
   "waitFor": "postCreateCommand",
   "forwardPorts": [8080, 5173, 5432, 4000],
   "portsAttributes": {
