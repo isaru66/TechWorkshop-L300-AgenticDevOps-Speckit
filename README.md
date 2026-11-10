@@ -100,7 +100,12 @@ required for this workshop.
    [setup exercise](docs/01_setup_development_environment/01_setup_development_environment.md).
 
 Container creation also installs the Specify CLI (Spec Kit `v1.2.6`) with
-`uv`; it does **not** run `specify init`. Java, Spring Boot, Copilot, REST
+`uv` and GitHub Copilot CLI with npm; it does **not** run `specify init`.
+For an existing Codespace, run **Codespaces: Rebuild Container** to install
+the CLI. Verify with `copilot --version`, then run `copilot` and use `/login`
+if prompted. Copilot CLI requires an active Copilot subscription and must
+be allowed by your organization's policies.
+Java, Spring Boot, Copilot, REST
 Client, and PostgreSQL VS Code extensions are configured in the
 [development container](.devcontainer/devcontainer.json).
 
