@@ -1,0 +1,16 @@
+{% assign stacks = "java|dotnet" | split: "|" %}
+{% assign stack_labels = "Java|.NET 10" | split: "|" %}
+<div class="stack-tabs" data-stack-tabs markdown="0">
+  <div class="stack-tabs__list" role="tablist" aria-label="{{ include.label | escape }}" hidden>
+    {% for stack in stacks %}
+    <button type="button" role="tab" id="{{ include.id | escape }}-tab-{{ stack }}" aria-controls="{{ include.id | escape }}-panel-{{ stack }}" aria-selected="false" tabindex="-1" data-stack="{{ stack }}">{{ stack_labels[forloop.index0] }}</button>
+    {% endfor %}
+  </div>
+  {% for stack in stacks %}
+  <section class="stack-tabs__panel" id="{{ include.id | escape }}-panel-{{ stack }}" data-stack-panel="{{ stack }}" aria-labelledby="{{ include.id | escape }}-heading-{{ stack }}">
+    <h4 class="stack-tabs__heading" id="{{ include.id | escape }}-heading-{{ stack }}">{{ stack_labels[forloop.index0] }}</h4>
+    {{ include[stack] | markdownify }}
+  </section>
+  {% endfor %}
+  <p class="stack-tabs__status" role="status" aria-live="polite" aria-atomic="true"></p>
+</div>

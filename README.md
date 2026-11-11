@@ -5,11 +5,13 @@ provides guided exercises for practicing specification-driven development
 and agentic DevOps with GitHub Copilot and Spec Kit. Start with a standalone
 browser-game warm-up, then plan and build a fictional banking demo.
 
-The intended result is a Java Spring Boot backend with REST and Model Context
-Protocol (MCP) interfaces, a React frontend, and PostgreSQL for persistence.
-The application is deliberately designed **without application authentication**.
-Its illustrative scope includes fictional customers and accounts, simulated
-deposits, withdrawals and transfers, and transaction history.
+Through Exercise 04, choose one REST backend: Java Spring Boot or ASP.NET
+Core 10 on .NET 10. Both paths use a React frontend and PostgreSQL. Exercises
+05-07 are later Java/Model Context Protocol (MCP)-oriented scaffolding, not a
+completed .NET continuation. The application is deliberately designed
+**without application authentication**. Its illustrative scope includes
+fictional customers and accounts, simulated deposits, withdrawals and
+transfers, and transaction history.
 
 > [!CAUTION]
 > **Fictional data only. No application authentication. Private use only.**
@@ -27,8 +29,8 @@ deposits, withdrawals and transfers, and transaction history.
   inspect generated changes, and verify behavior.
 - Initialize Spec Kit and work through specifications, technical plans,
   dependency-ordered tasks, implementation, and convergence.
-- Build and check REST and MCP capabilities, connect a React frontend,
-  and configure a private MCP client.
+- Plan and check REST capabilities and explore later Java/MCP-oriented
+  scaffolding for a private MCP client.
 - Explore reusable agent skills using a generic, non-sensitive brief.
 
 ## Step by Step Instructions
@@ -47,37 +49,39 @@ The step by step instructions for this lab can be found in the [AgenticDevOps-Sp
 | [08. Build agent skills](docs/08_build_agent_skills/08_build_agent_skills.md) | Install a PPTX skill, create `blue-brand-pptx` from an approved sample PDF, and test a model-comparison deck. |
 
 **Content status:** Exercises 01-04 contain setup instructions and guided
-workflows. Exercises 05-07 are currently scaffolding and require facilitator
-review and expansion before delivery. Exercise 08 provides a skill-building
-walkthrough and requires a customer-supplied, approved sample PDF. No finished
-PPTX skill or presentation is supplied.
+workflows; Exercise 04 offers both backend choices. Exercises 05-07 are
+Java/MCP-oriented scaffolding, require facilitator review and expansion before
+delivery, and are not a completed .NET path. Exercise 08 provides a
+skill-building walkthrough and requires a customer-supplied, approved sample
+PDF. No finished PPTX skill or presentation is supplied.
 
 ## What is included
 
-The initial `src` tree contains only README placeholders. It does not include
-application code, a database, CSV records, a Compose file, or an initialized
-Spec Kit project. Attendees create the application and any fictional data as
-part of the workshop. There is no application build or start command to run
-immediately after cloning.
+The `src` tree includes placeholder application READMEs and four tracked
+fictional CSV seed files. It does not include application code, a database, a
+Compose file, or an initialized Spec Kit project. Attendees create the
+application and plan how to import the existing fictional data. There is no
+application build or start command to run immediately after cloning.
 
 The repository does include:
 
 - Workshop pages, task walkthroughs, screenshots, and a Copilot mascot asset.
 - A development-container configuration with the workshop toolchain.
 - A Jekyll documentation site using the Just the Docs theme.
-- Shared operating-system tabs and code-copy controls for documentation.
+- Shared operating-system and backend-stack tabs, plus code-copy controls for
+  documentation.
 - A GitHub Actions workflow for publishing the documentation to Pages.
 
 ## Intended application architecture
 
 ```text
-React frontend ---- REST ----> Spring Boot backend ----> PostgreSQL
-MCP client -------- MCP -----> Spring Boot backend
+React frontend ---- REST ----> Java Spring Boot OR ASP.NET Core 10 ----> PostgreSQL
 ```
 
-Both interfaces belong to the attendee-created backend. Keep all components
-private and use fictional records only. The browser-game warm-up is separate
-from this banking application.
+Choose one backend for Exercise 04. Later Java/MCP-oriented scaffolding
+illustrates an MCP interface, not a completed .NET continuation. Keep all
+components private and use fictional records only. The browser-game warm-up
+is separate from this banking application.
 
 ## Prerequisites
 
@@ -94,19 +98,19 @@ required for this workshop.
 2. In your fork, use **Code > Codespaces > Create codespace**. Your account
    needs permission and available quota to create a Codespace.
 3. Wait for development-container setup to finish. It supplies JDK 21,
-   Maven 3.9, Node.js 22 with npm, Python, uv, and Docker-in-Docker with
-   Docker Compose v2.
+   Maven 3.9, the .NET SDK 10.0, Node.js 22 with npm, Python, uv, and
+   Docker-in-Docker with Docker Compose v2.
 4. Confirm that Copilot Chat responds, then follow the
    [setup exercise](docs/01_setup_development_environment/01_setup_development_environment.md).
 
 Container creation also installs the Specify CLI (Spec Kit `v1.2.6`) with
 `uv` and GitHub Copilot CLI with npm; it does **not** run `specify init`.
-For an existing Codespace, run **Codespaces: Rebuild Container** to install
-the CLI. Verify with `copilot --version`, then run `copilot` and use `/login`
-if prompted. Copilot CLI requires an active Copilot subscription and must
-be allowed by your organization's policies.
-Java, Spring Boot, Copilot, REST
-Client, and PostgreSQL VS Code extensions are configured in the
+For an existing Codespace, run **Codespaces: Rebuild Container** to pick up
+the configured SDK, extensions, and CLI. Verify with `copilot --version`, then
+run `copilot` and use `/login` if prompted. Copilot CLI requires an active
+Copilot subscription and must be allowed by your organization's policies.
+Java, Spring Boot, C#, Copilot, REST Client, and PostgreSQL VS Code extensions
+are configured in the
 [development container](.devcontainer/devcontainer.json).
 
 Keep any forwarded application ports private. Codespaces access controls do
@@ -117,7 +121,8 @@ not add authentication to the application or its REST and MCP interfaces.
 Install Git and an editor such as Visual Studio Code, plus the tools used in
 the exercises:
 
-- Java Development Kit (JDK) 21 and Maven 3.9.
+- For the selected backend, either Java Development Kit (JDK) 21 and Maven
+  3.9, or the .NET 10 SDK (10.0, not just the runtime).
 - Node.js 22 and npm.
 - Python 3 and [uv](https://docs.astral.sh/uv/).
 - GitHub Copilot access for its exercises, or another compatible AI coding
@@ -125,6 +130,10 @@ the exercises:
 - Docker with Docker Compose for the PostgreSQL exercise. Attendees create
   their own Compose configuration during the workshop; none is supplied
   here.
+
+For Java, check `java -version` and `mvn -version`. For .NET, run
+`dotnet --list-sdks` and `dotnet --info` and confirm that a 10.0 SDK is
+installed, even if other SDK versions are also listed.
 
 Fork the repository, clone **your fork**, and open the working copy in
 VS Code. Follow the [prerequisite installation guide](docs/01_setup_development_environment/01_02.md)
@@ -143,20 +152,22 @@ start the corresponding services.
 
 | Port | Intended use |
 |---|---|
-| 8080 | Spring Boot backend |
+| 8080 | Selected Java Spring Boot or .NET 10 backend |
 | 5173 | React frontend |
 | 5432 | PostgreSQL |
 | 4000 | Documentation preview |
 
-Keep forwarded ports **private**, including when sharing a workshop workspace.
+Configure the .NET backend to listen on port 8080; template defaults can
+differ. Keep forwarded ports **private**, including when sharing a workshop
+workspace.
 
 ## Repository layout
 
-- [`src/`](src/README.md): placeholders for the attendee-created application.
-- [`src/backend/`](src/backend/README.md): future Spring Boot backend.
+- [`src/`](src/README.md): application placeholders and fictional seed data.
+- [`src/backend/`](src/backend/README.md): future selected Java or .NET backend.
 - [`src/frontend/`](src/frontend/README.md): future React frontend.
-- [`src/data/seed/`](src/data/seed/README.md): reserved for attendee-created
-  fictional CSV data.
+- [`src/data/seed/`](src/data/seed/README.md): four tracked fictional CSV
+  files and seed-import guidance.
 - [`docs/`](docs/): workshop documentation and exercise pages.
 - [`.devcontainer/`](.devcontainer/devcontainer.json): toolchain, extensions,
   Specify CLI installation, and port-forwarding configuration.
@@ -243,6 +254,28 @@ outside OS tabs, including pages without tabs. They copy the exact code text usi
 Clipboard API on HTTPS or localhost, with explicit success/failure feedback and
 a manual selection option when copying is denied. The theme's global copy
 buttons are disabled to prevent duplicate controls.
+
+## Authoring backend-stack tabs
+
+Capture each stack's Markdown and pass both captures to the include:
+
+````liquid
+{% capture java %}
+Run the Java toolchain checks.
+{% endcapture %}
+{% capture dotnet %}
+Run the .NET toolchain checks.
+{% endcapture %}
+{% include stack-tabs.html id="unique-id" label="Description" java=java dotnet=dotnet %}
+````
+
+Replace the example `id` and `label` with a unique ID and a descriptive label.
+Do not nest tab groups, including stack tabs inside OS tabs or vice versa.
+Java is the default. Explicit stack selections synchronize on the page and
+persist across pages in `localStorage` under `workshop-stack`, independently
+of OS selection; tabs still work on the page if storage is unavailable. Use
+Left/Right arrows, Home, and End to navigate. Without JavaScript, both labeled
+panels remain readable.
 
 ## Publishing the documentation
 

@@ -57,7 +57,8 @@
   box-shadow: inset 3px 0 0 $link-color;
 }
 
-.os-tabs {
+.os-tabs,
+.stack-tabs {
   margin: 1rem 0;
   min-width: 0;
 
@@ -75,7 +76,8 @@
   }
 }
 
-.os-tabs__list {
+.os-tabs__list,
+.stack-tabs__list {
   display: inline-flex;
   max-width: 100%;
   overflow: hidden;
@@ -133,7 +135,8 @@
   }
 }
 
-.os-tabs--ready .os-tabs__panel {
+.os-tabs--ready .os-tabs__panel,
+.stack-tabs--ready .stack-tabs__panel {
   margin-top: 0.75rem;
   padding: 0.75rem;
   border: 1px solid $border-color;
@@ -235,10 +238,12 @@
 }
 
 .code-copy-status,
-.os-tabs__status {
+.os-tabs__status,
+.stack-tabs__status {
   font-size: 0.875rem;
 }
 
-.os-tabs__status:empty {
+.os-tabs__status:empty,
+.stack-tabs__status:empty {
   display: none;
 }

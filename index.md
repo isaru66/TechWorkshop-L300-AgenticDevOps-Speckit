@@ -10,23 +10,25 @@ nav_order: 1
 
 ## Scenario and safety
 
-Participants will plan and build a small fictional banking application using GitHub Copilot, Spec Kit, a Spring Boot REST/MCP backend, PostgreSQL, and a React frontend. The application is deliberately **unauthenticated**, is for **fictional data only**, and must **never be publicly exposed**. Run it in a private local environment; do not use real financial or personal information. No Azure provisioning is part of this workshop.
+Through Exercise 04, participants plan and build a small fictional banking application using GitHub Copilot, Spec Kit, and one REST backend: Java Spring Boot or ASP.NET Core 10 on .NET 10. Both paths use PostgreSQL and a React frontend. The application is deliberately **unauthenticated**, is for **fictional data only**, and must **never be publicly exposed**. Run it in a private local environment; do not use real financial or personal information. No Azure provisioning is part of this workshop.
 
 The illustrative target includes fictional customers and accounts, simulated deposits, withdrawals and transfers, and transaction history. These are example features to refine in the workshop, not a connection to a real banking system.
 
-The application code, database seed content, Spec Kit project files, Compose file, and MCP client configuration are not supplied as a completed solution. Participants will create or initialize them during the relevant exercises.
+The repository tracks four fictional CSV seed files in `src/data/seed/`. Application code, a populated database, Spec Kit project files, a Compose file, and MCP client configuration are not supplied as a completed solution. Participants create or initialize those pieces and plan the seed import during the relevant exercises.
 
 ## Illustrative architecture
 
-![High-level application architecture]({{ '/media/Solution/app-highlevel-architecture.svg' | relative_url }})
+The following Java/Spring Boot diagram is an illustration of the longer-term architecture, including the later MCP concept. It does not depict a completed .NET path.
 
-- The React frontend sends REST requests to the Spring Boot backend.
-- An MCP client interacts with the backend through its MCP interface.
+![Java-oriented illustration of the longer-term application architecture]({{ '/media/Solution/app-highlevel-architecture.svg' | relative_url }})
+
+- The React frontend sends REST requests to the selected Java Spring Boot or ASP.NET Core 10 backend.
 - The backend reads and writes fictional records in PostgreSQL.
+- Exercises 05-07 are later Java/MCP-oriented scaffolding, not a completed .NET continuation.
 
 ## Prerequisites
 
-Bring a development environment where you can install the required tools and use VS Code and GitHub Copilot. The first exercise covers tool and access checks. A local container runtime is needed for the planned PostgreSQL exercise.
+Bring a development environment where you can use VS Code and GitHub Copilot. For local work, install the shared tools (Git, Node.js 22 with npm, Python 3, uv, and Docker with Compose) and the selected backend's toolchain: JDK 21 with Maven 3.9 for Java, or the .NET 10 SDK (10.0) for .NET. The development container supplies both backend toolchains; rebuild an existing container to pick up updates. The first exercise covers installation and access checks.
 
 ## Exercises
 

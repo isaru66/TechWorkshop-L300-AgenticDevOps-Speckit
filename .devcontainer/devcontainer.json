@@ -1,11 +1,14 @@
 {
-  "name": "Java, React, PostgreSQL and MCP workshop",
+  "name": "Java and .NET 10, React, PostgreSQL and MCP workshop",
   "image": "mcr.microsoft.com/devcontainers/base:2-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "21",
       "installMaven": true,
       "mavenVersion": "3.9"
+    },
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "10.0"
     },
     "ghcr.io/devcontainers/features/node:2": {
       "version": "22",
@@ -30,7 +33,7 @@
   "forwardPorts": [8080, 5173, 5432, 4000],
   "portsAttributes": {
     "8080": {
-      "label": "Spring Boot"
+      "label": "Backend (Spring Boot / ASP.NET Core)"
     },
     "5173": {
       "label": "React"
@@ -49,6 +52,7 @@
       "extensions": [
         "vscjava.vscode-java-pack",
         "vmware.vscode-boot-dev-pack",
+        "ms-dotnettools.csharp",
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "humao.rest-client",
