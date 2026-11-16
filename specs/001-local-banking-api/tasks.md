@@ -240,3 +240,9 @@ Add US3 (create), US4 (deposit and withdraw), and US6 (history) in turn, validat
 - Never write database connection values into files, docs, or logs
 - Commit after each task or logical group
 - Keep the UI and docs client-neutral
+
+## Phase 10: Convergence
+
+- [X] T061 Add `src/backend/src/test/java/com/workshop/banking/service/TransferRulesIT.java` covering the rules T032 still lacks: a `CURRENCY_MISMATCH` rejection (the schema CHECK forbids non-THB accounts, so use a service-level test with mocked repositories) and an atomic-rollback test that injects a failure after the first balance update and asserts both balances and both histories are unchanged per FR-010, FR-012 (partial)
+- [X] T062 Add a balance-consistency assertion to `src/backend/src/test/java/com/workshop/banking/service/DepositWithdrawHistoryIT.java`: after the concurrent withdrawal and opposing-transfer tests, every touched account's balance equals its latest entry's `resulting_balance` per SC-005 (partial)
+- [X] T063 Add an API test in `src/backend/src/test/java/com/workshop/banking/api/BrowseAndCreateApiIT.java` that `GET /api/accounts/{id}/transactions` for a newly opened account returns 200 with an empty `items` page and `totalElements` 0 per FR-013 (partial)

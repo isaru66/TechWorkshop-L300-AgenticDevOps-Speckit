@@ -76,7 +76,8 @@ class BrowseAndCreateApiIT extends PostgresIntegrationTest {
         assertThat(history(account)).isEmpty();
         mvc.perform(get("/api/accounts/{id}/transactions", account))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items.length()").value(0));
+                .andExpect(jsonPath("$.items.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     @Test

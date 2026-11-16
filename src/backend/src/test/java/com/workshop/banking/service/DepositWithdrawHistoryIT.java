@@ -87,6 +87,12 @@ class DepositWithdrawHistoryIT extends PostgresIntegrationTest {
         pool.shutdown();
         assertThat(ok).isEqualTo(10);
         assertThat(balance(id)).isEqualByComparingTo(BigDecimal.ZERO);
+        assertLatestEntryMatchesBalance(id);
+    }
+
+    private void assertLatestEntryMatchesBalance(UUID id) {
+        var h = history(id);
+        assertThat((BigDecimal) h.get(h.size() - 1).get("resulting_balance")).isEqualByComparingTo(balance(id));
     }
 
     @Test
@@ -112,6 +118,8 @@ class DepositWithdrawHistoryIT extends PostgresIntegrationTest {
         pool.shutdown();
         assertThat(balance(a).add(balance(b))).isEqualByComparingTo(total);
         assertThat(balance(a)).isGreaterThanOrEqualTo(BigDecimal.ZERO);
+        assertLatestEntryMatchesBalance(a);
+        assertLatestEntryMatchesBalance(b);
     }
 
     @Test
