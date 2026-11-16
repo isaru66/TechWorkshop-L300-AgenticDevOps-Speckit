@@ -1,10 +1,37 @@
-# Backend placeholder
+# Local Banking API (backend)
 
-Through Exercise 04, attendees will create one backend here: Java Spring Boot
-or ASP.NET Core 10 on .NET 10. The selected backend will provide REST APIs and
-use PostgreSQL, with a shared React frontend. Later Exercises 05-07 are
-Java/MCP-oriented scaffolding, not a completed .NET continuation. There is no
-backend source, build configuration, or runnable API in this starter.
+Fictional, local-only banking REST API: Spring Boot 4.1, Java 21 bytecode
+(`maven.compiler.release=21`), Maven 3.9, PostgreSQL. No authentication; it
+listens on `127.0.0.1:8080` only. Use fictional data only and keep endpoints
+private; see the [root README](../../README.md).
 
-The intended application has no application authentication. Use fictional
-data only and keep its endpoints private; see the [root README](../../README.md).
+## Configuration
+
+Set these environment variables for a local PostgreSQL database you control:
+`DB_URL` (JDBC URL), `DB_USER`, `DB_PASSWORD`.
+
+Seed CSVs are read from `../data/seed` (override with `banking.seed.path`), so
+run from this directory.
+
+## Build and test
+
+```powershell
+mvn -B clean verify
+```
+
+Tests use Testcontainers (Docker required) and never touch your local database.
+
+## Run
+
+```powershell
+mvn spring-boot:run
+```
+
+On startup the seed is imported insert-only: existing UUIDs are skipped, later
+changes are never overwritten and history is never replayed into balances.
+
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- OpenAPI: http://localhost:8080/v3/api-docs
+- Health: http://localhost:8080/actuator/health
+
+REST verification steps: `specs/001-local-banking-api/quickstart.md`.
