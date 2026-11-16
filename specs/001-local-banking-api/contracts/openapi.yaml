@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Local Banking API
+  description: Fictional, private, local-only banking API. No authentication. THB only.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Customers
+  - name: Accounts
+  - name: Transactions
+paths:
+  /api/customers:
+    get:
+      tags: [Customers]
+      summary: List customers (paged)
+      parameters:
+        - { $ref: '#/components/parameters/page' }
+        - { $ref: '#/components/parameters/size' }
+      responses:
+        '200':
+          description: A page of customers
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerPage' }
+        '400': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400': { $ref: '#/components/responses/Error' }
+  /api/customers/{customerId}:
+    get:
+      tags: [Customers]
+      summary: Get a customer
+      parameters:
+        - { $ref: '#/components/parameters/customerId' }
+      responses:
+        '200':
+          description: The customer (full fictional record)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '404': { $ref: '#/components/responses/Error' }
+  /api/customers/{customerId}/accounts:
+    get:
+      tags: [Accounts]
+      summary: List a customer's accounts
+      parameters:
+        - { $ref: '#/components/parameters/customerId' }
+      responses:
+        '200':
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Accounts]
+      summary: Open a THB account (balance 0.00)
+      parameters:
+        - { $ref: '#/components/parameters/customerId' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/Error' }
+  /api/accounts:
+    get:
+      tags: [Accounts]
+      summary: List accounts (paged)
+      parameters:
+        - { $ref: '#/components/parameters/page' }
+        - { $ref: '#/components/parameters/size' }
+      responses:
+        '200':
+          description: A page of accounts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountPage' }
+  /api/accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Get an account
+      parameters:
+        - { $ref: '#/components/parameters/accountId' }
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404': { $ref: '#/components/responses/Error' }
+  /api/accounts/{accountId}/balance:
+    get:
+      tags: [Accounts]
+      summary: Get the current balance
+      parameters:
+        - { $ref: '#/components/parameters/accountId' }
+      responses:
+        '200':
+          description: Balance
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Balance' }
+        '404': { $ref: '#/components/responses/Error' }
+  /api/accounts/{accountId}/deposits:
+    post:
+      tags: [Transactions]
+      summary: Deposit
+      parameters:
+        - { $ref: '#/components/parameters/accountId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AmountRequest' }
+      responses:
+        '201':
+          description: Recorded entry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionEntry' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /api/accounts/{accountId}/withdrawals:
+    post:
+      tags: [Transactions]
+      summary: Withdraw
+      parameters:
+        - { $ref: '#/components/parameters/accountId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AmountRequest' }
+      responses:
+        '201':
+          description: Recorded entry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionEntry' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /api/transfers:
+    post:
+      tags: [Transactions]
+      summary: Transfer between two distinct same-currency accounts (atomic)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransferRequest' }
+      responses:
+        '201':
+          description: Completed transfer
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transfer' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /api/accounts/{accountId}/transactions:
+    get:
+      tags: [Transactions]
+      summary: Account history, newest first
+      parameters:
+        - { $ref: '#/components/parameters/accountId' }
+        - { $ref: '#/components/parameters/page' }
+        - { $ref: '#/components/parameters/size' }
+      responses:
+        '200':
+          description: A page of entries
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionPage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+components:
+  parameters:
+    customerId:
+      name: customerId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    accountId:
+      name: accountId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Error:
+      description: >
+        Error. 400 invalid input; 404 unknown id; 422 business rule
+        (INSUFFICIENT_FUNDS, SAME_ACCOUNT, CURRENCY_MISMATCH).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+  schemas:
+    Money:
+      type: string
+      pattern: '^\d+(\.\d{1,2})?$'
+      example: '1500.00'
+      description: Decimal string, at most 2 decimals, never a float.
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_ERROR, NOT_FOUND, INSUFFICIENT_FUNDS, SAME_ACCOUNT, CURRENCY_MISMATCH]
+        message: { type: string }
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+    CustomerInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        englishName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        addressLine: { type: string }
+        subdistrict: { type: string }
+        district: { type: string }
+        province: { type: string }
+        postcode: { type: string }
+        dateOfBirth: { type: string, format: date }
+        occupation: { type: string }
+        nationalId: { type: string }
+    Customer:
+      allOf:
+        - { $ref: '#/components/schemas/CustomerInput' }
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+    Account:
+      type: object
+      required: [id, customerId, currency, balance, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        customerId: { type: string, format: uuid }
+        currency: { type: string, enum: [THB] }
+        balance: { $ref: '#/components/schemas/Money' }
+        createdAt: { type: string, format: date-time }
+    Balance:
+      type: object
+      required: [accountId, currency, balance]
+      properties:
+        accountId: { type: string, format: uuid }
+        currency: { type: string, enum: [THB] }
+        balance: { $ref: '#/components/schemas/Money' }
+    AmountRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount: { $ref: '#/components/schemas/Money' }
+    TransferRequest:
+      type: object
+      required: [sourceAccountId, destinationAccountId, amount]
+      properties:
+        sourceAccountId: { type: string, format: uuid }
+        destinationAccountId: { type: string, format: uuid }
+        amount: { $ref: '#/components/schemas/Money' }
+    Transfer:
+      type: object
+      required: [id, sourceAccountId, destinationAccountId, amount, currency, completedAt]
+      properties:
+        id: { type: string, format: uuid }
+        sourceAccountId: { type: string, format: uuid }
+        destinationAccountId: { type: string, format: uuid }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { type: string, enum: [THB] }
+        completedAt: { type: string, format: date-time }
+    TransactionEntry:
+      type: object
+      required: [id, sequence, accountId, type, amount, currency, completedAt, resultingBalance]
+      properties:
+        id: { type: string, format: uuid }
+        sequence: { type: integer, format: int64 }
+        accountId: { type: string, format: uuid }
+        type: { type: string, enum: [DEPOSIT, WITHDRAWAL, TRANSFER_IN, TRANSFER_OUT] }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { type: string, enum: [THB] }
+        completedAt: { type: string, format: date-time }
+        resultingBalance: { $ref: '#/components/schemas/Money' }
+        transferId: { type: string, format: uuid, nullable: true }
+        counterpartyAccountId: { type: string, format: uuid, nullable: true }
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer, format: int64 }
+        totalPages: { type: integer }
+    CustomerPage:
+      allOf:
+        - { $ref: '#/components/schemas/PageMeta' }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Customer' }
+    AccountPage:
+      allOf:
+        - { $ref: '#/components/schemas/PageMeta' }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Account' }
+    TransactionPage:
+      allOf:
+        - { $ref: '#/components/schemas/PageMeta' }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/TransactionEntry' }
