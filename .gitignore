@@ -26,13 +26,24 @@ replay_pid*
 # Node.js
 node_modules/
 dist/
+build/
 coverage/
+test-results/
+playwright-report/
 .vite/
 *.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
+
+# .NET
+bin/
+obj/
+packages/
+*.user
+*.suo
 
 # Python and uv
 .venv/
@@ -53,3 +64,5 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+*.tmp
+*.swp

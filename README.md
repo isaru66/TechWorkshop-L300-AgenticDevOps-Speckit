@@ -1,9 +1,9 @@
 # Agentic DevOps with Spec Kit workshop
 
-This repository is a **workshop starter**, not a finished application. It
-provides guided exercises for practicing specification-driven development
-and agentic DevOps with GitHub Copilot and Spec Kit. Start with a standalone
-browser-game warm-up, then plan and build a fictional banking demo.
+This repository provides guided exercises for practicing specification-driven
+development and agentic DevOps with GitHub Copilot and Spec Kit. It includes
+an implemented local .NET fictional banking example alongside the workshop
+materials and standalone browser-game warm-up.
 
 Through Exercise 04, choose one REST backend: Java Spring Boot or ASP.NET
 Core 10 on .NET 10. Both paths use a React frontend and PostgreSQL. Exercises
@@ -15,7 +15,7 @@ transfers, and transaction history.
 
 > [!CAUTION]
 > **Fictional data only. No application authentication. Private use only.**
-> Use the eventual application only in a private, trusted development
+> Use the application only in a private, trusted development
 > environment. Anyone who can reach its REST or MCP interfaces may be able
 > to access or change its data. Do not expose the application or forwarded
 > ports to the public internet, and never use real personal, financial, or
@@ -57,11 +57,11 @@ PDF. No finished PPTX skill or presentation is supplied.
 
 ## What is included
 
-The `src` tree includes placeholder application READMEs and four tracked
-fictional CSV seed files. It does not include application code, a database, a
-Compose file, or an initialized Spec Kit project. Attendees create the
-application and plan how to import the existing fictional data. There is no
-application build or start command to run immediately after cloning.
+The `src` tree includes the .NET banking API, React interface, and four
+tracked fictional CSV seed files. The repository also contains the local
+PostgreSQL Compose configuration and Spec Kit feature artifacts. Follow the
+[banking quickstart](specs/001-local-banking-api/quickstart.md) for setup,
+import, build, startup, and verification.
 
 The repository does include:
 
@@ -163,9 +163,9 @@ workspace.
 
 ## Repository layout
 
-- [`src/`](src/README.md): application placeholders and fictional seed data.
-- [`src/backend/`](src/backend/README.md): future selected Java or .NET backend.
-- [`src/frontend/`](src/frontend/README.md): future React frontend.
+- [`src/`](src/README.md): application and fictional seed data.
+- [`src/backend/`](src/backend/README.md): .NET banking backend and tests.
+- [`src/frontend/`](src/frontend/README.md): React frontend.
 - [`src/data/seed/`](src/data/seed/README.md): four tracked fictional CSV
   files and seed-import guidance.
 - [`docs/`](docs/): workshop documentation and exercise pages.

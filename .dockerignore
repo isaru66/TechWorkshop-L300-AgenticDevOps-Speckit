@@ -1,0 +1,11 @@
+.git/
+node_modules/
+bin/
+obj/
+dist/
+coverage/
+Dockerfile*
+.dockerignore
+*.log*
+.env*
+!.env.example

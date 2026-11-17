@@ -1,10 +1,17 @@
-# Backend placeholder
+# Banking API
 
-Through Exercise 04, attendees will create one backend here: Java Spring Boot
-or ASP.NET Core 10 on .NET 10. The selected backend will provide REST APIs and
-use PostgreSQL, with a shared React frontend. Later Exercises 05-07 are
-Java/MCP-oriented scaffolding, not a completed .NET continuation. There is no
-backend source, build configuration, or runnable API in this starter.
+`Banking.Api` targets .NET 10 and uses controllers, EF Core 10 with Npgsql,
+and PostgreSQL. The scoped banking service performs exact-decimal deposits,
+withdrawals, and transfers atomically with their history. The seed import is a
+Development-only CLI command; it preserves original balances and safely skips
+previously accepted source records.
 
-The intended application has no application authentication. Use fictional
-data only and keep its endpoints private; see the [root README](../../README.md).
+From the repository root, follow the
+[quickstart](../../specs/001-local-banking-api/quickstart.md) for private
+database credentials, migration, import, build, tests, and startup. In
+Development, the API listens on `127.0.0.1:8080`; `/openapi/v1.json` and
+`/swagger` expose its local API documentation.
+
+`Banking.Api.Tests` requires an isolated `banking_test` PostgreSQL database on
+loopback port 5433. It creates uniquely named schemas and removes only those
+test-owned schemas. It never resets the development database.

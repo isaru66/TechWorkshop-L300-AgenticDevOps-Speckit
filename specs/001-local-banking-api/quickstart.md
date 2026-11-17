@@ -1,18 +1,18 @@
 # Quickstart and Validation Guide
 
-This guide is the contract for the project generated during implementation. At planning time the repository contains placeholders, not the application described here. Do not run these commands until the planned solution, manifests, migrations, Compose configuration, and verification script exist.
+This guide covers the implemented local application, its import, and its verification.
 
 Run PowerShell from the repository root. Filesystem paths below are Windows-style; HTTP paths use normal URL syntax. Use only the supplied fictional data.
 
 ## Prerequisites
 
-- .NET SDK 10, with the tested SDK pinned in `global.json`.
-- Node.js 22.12+ and npm.
+- .NET SDK 10.0.404, pinned in `global.json`.
+- Node.js 22.12+ and npm (tested with Node.js 22.14.0).
 - Docker Desktop with Linux containers and Docker Compose v2.
 - A modern browser; Playwright installs its own Chromium for end-to-end checks.
 - Available loopback ports 8080, 5173, 5432, and optional test port 5433. Resolve conflicts rather than changing the backend's required port.
 
-The generated project must expose these exact paths:
+The project exposes these paths:
 
 ```text
 BankingWorkshop.slnx
@@ -61,8 +61,8 @@ dotnet run --project .\src\backend\Banking.Api\Banking.Api.csproj --no-launch-pr
 dotnet run --project .\src\backend\Banking.Api\Banking.Api.csproj --no-launch-profile -- --import-seed --seed-path $seedPath
 
 Push-Location .\src\frontend
-npm ci
-npm run build
+npm.cmd ci
+npm.cmd run build
 Pop-Location
 ```
 
@@ -70,7 +70,7 @@ On an empty database, the first import inserts 102 customers, 150 accounts, 101 
 
 ## 3. Run automated checks
 
-The generated `test` Compose profile provides a separate `test-db`, database/user `banking_test`, loopback port 5433, the same local password, a health check, and temporary data storage.
+The `test` Compose profile provides a separate `test-db`, database/user `banking_test`, loopback port 5433, the same local password, a health check, and temporary data storage.
 
 ```powershell
 docker compose --profile test up -d --wait test-db
@@ -80,8 +80,8 @@ dotnet test .\src\backend\Banking.Api.Tests\Banking.Api.Tests.csproj --no-restor
 dotnet format .\BankingWorkshop.slnx --verify-no-changes --no-restore
 
 Push-Location .\src\frontend
-npm run lint
-npm run test -- --run
+npm.cmd run lint
+npm.cmd run test -- --run
 Pop-Location
 ```
 
@@ -110,7 +110,7 @@ In a new frontend terminal:
 
 ```powershell
 Set-Location .\src\frontend
-npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
 Expected addresses: API `http://127.0.0.1:8080`, UI `http://127.0.0.1:5173`, SwaggerUI `http://127.0.0.1:8080/swagger`, generated document `http://127.0.0.1:8080/openapi/v1.json`.
@@ -252,12 +252,12 @@ For automated Chromium verification, keep the local services running. Tests use 
 
 ```powershell
 Push-Location .\src\frontend
-npx playwright install chromium
-npm run test:e2e
+npx.cmd playwright install chromium
+npm.cmd run test:e2e
 Pop-Location
 ```
 
-The generated `test:e2e` script runs Playwright with `baseURL` `http://127.0.0.1:5173` and REST URL `http://127.0.0.1:8080/api`; run mutation scenarios serially. Include both-account before/after REST assertions around UI submissions.
+The `test:e2e` script runs Playwright with `baseURL` `http://127.0.0.1:5173` and proxies REST requests to `http://127.0.0.1:8080/api`; mutation scenarios run serially and assert both-account before/after snapshots.
 
 ## 8. Stop without losing data
 
