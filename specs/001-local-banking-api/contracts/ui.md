@@ -27,7 +27,7 @@ Desktop may use a customer/account column and a wider balance/action/history pan
 - While a mutation is pending, disable all mutation submission controls that could resubmit it. A click represents one request; no automatic retry on timeout or network failure.
 - After success, refresh the affected account balance/history; transfers refresh or invalidate cached data for both accounts. Retain the completed result even if the subsequent read fails and show a separate refresh error.
 - After rejection, show the stable problem code and readable explanation; refresh affected data without optimistic balance changes.
-- On an ambiguous network outcome, explain that completion is unknown and offer a read-only refresh, not an automatic replay.
+- On an ambiguous network or server outcome, explain that completion is unknown and offer a read-only refresh, not an automatic replay.
 - Loading, empty history, no accounts, service unavailable, validation failure, and refresh failure have explicit visible states.
 - Keyboard navigation, programmatic labels, visible focus, and an announcement region for operation outcomes are required.
 

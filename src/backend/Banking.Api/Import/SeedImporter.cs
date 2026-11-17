@@ -12,6 +12,9 @@ public sealed class SeedImporter(BankingDbContext db, BankingTransactionCoordina
     public Task<ImportResult> ImportAsync(string seedPath, CancellationToken cancellationToken = default) =>
         ImportBatchAsync(SeedCsvReader.Read(seedPath), cancellationToken);
 
+    internal Task<ImportResult> ImportAsync(Func<string, TextReader> openSource, CancellationToken cancellationToken = default) =>
+        ImportBatchAsync(SeedCsvReader.ReadSources(openSource), cancellationToken);
+
     internal async Task<ImportResult> ImportBatchAsync(SeedBatch batch, CancellationToken cancellationToken = default)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -41,6 +44,15 @@ public sealed class SeedImporter(BankingDbContext db, BankingTransactionCoordina
         {
             if (!accepted.ContainsKey((row.EntityType, row.Id)) && entityIds[row.EntityType].Contains(row.Id))
                 throw new SeedInputException($"{row.EntityType}.csv: untracked UUID collision {row.Id:D} at row {row.RowNumber}.");
+        }
+
+        var existingSequences = (await db.TransactionEntries.AsNoTracking().Select(entry => entry.Sequence)
+            .ToListAsync(cancellationToken)).ToHashSet();
+        foreach (var row in batch.Rows["transaction_entries"])
+        {
+            var entry = (TransactionEntry)row.Entity;
+            if (!accepted.ContainsKey((row.EntityType, row.Id)) && existingSequences.Contains(entry.Sequence))
+                throw new SeedInputException($"transaction_entries.csv: sequence {entry.Sequence} conflicts with stored history for UUID {row.Id:D} at row {row.RowNumber}.");
         }
 
         var counts = new Dictionary<string, ImportCounts>();

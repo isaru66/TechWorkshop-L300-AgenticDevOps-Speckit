@@ -1,6 +1,8 @@
 import { formatMoney } from '../api/money.js';
 
-export default function AccountDetails({ customer, account }) {
+export default function AccountDetails({ customer, account, loading, error }) {
+  if (loading) return <section className="panel"><h2>Account details</h2><p role="status">Loading balance...</p></section>;
+  if (error) return <section className="panel"><h2>Account details</h2><p className="error" role="alert">Balance refresh failed: {error}</p></section>;
   if (!account) return <section className="panel"><h2>Account details</h2><p>Select an account to see its balance and history.</p></section>;
   return (
     <section className="panel balance-panel" aria-labelledby="balance-heading">

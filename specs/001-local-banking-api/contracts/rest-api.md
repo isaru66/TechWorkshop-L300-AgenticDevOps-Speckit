@@ -85,7 +85,8 @@ Errors use `application/problem+json` with standard ProblemDetails fields and ex
 | 404 | `not_found` | Well-formed UUID not found. |
 | 409 | `insufficient_funds` | Source balance cannot cover withdrawal/transfer. |
 | 409 | `balance_limit_exceeded` | Credit would exceed supported balance range. |
-| 503 | `operation_unavailable` | Database unavailable or transaction failed before a confirmed commit. |
+| 503 | `operation_unavailable` | Database unavailable before commit. |
+| 503 | `completion_unknown` | Commit was attempted but its completion could not be confirmed. Refresh and reconcile before submitting again. |
 | 500 | `unexpected_error` | Unexpected failure, sanitized diagnostic response. |
 
 ```json
@@ -99,7 +100,7 @@ Errors use `application/problem+json` with standard ProblemDetails fields and ex
 }
 ```
 
-Deterministic validation/business rejections leave both balances, complete histories, and completed-transfer records unchanged. If a network failure prevents the client from knowing whether a commit succeeded, it must refresh and reconcile rather than assume rejection or automatically resubmit. No idempotency key or automatic mutation retry is promised in this version.
+Deterministic validation/business rejections leave both balances, complete histories, and completed-transfer records unchanged. If a network failure or `completion_unknown` prevents the client from knowing whether a commit succeeded, it must refresh and reconcile rather than assume rejection or automatically resubmit. No idempotency key or automatic mutation retry is promised in this version.
 
 ## Development documentation and readiness
 

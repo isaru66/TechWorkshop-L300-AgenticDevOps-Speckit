@@ -22,13 +22,19 @@ public sealed class SeedValidationTests(PostgresFixture fixture) : IClassFixture
         var badSequence = Copy(source);
         badSequence["transaction_entries"] = badSequence["transaction_entries"].Replace(
             $"{entryFields[0]},1,", $"{entryFields[0]},2,", StringComparison.Ordinal);
-        Assert.Throws<SeedInputException>(() => Parse(badSequence));
+        var sequenceError = Assert.Throws<SeedInputException>(() => Parse(badSequence));
+        Assert.Contains("transaction_entries.csv", sequenceError.Message);
+        Assert.Contains("row", sequenceError.Message);
+        Assert.Contains("sequence", sequenceError.Message);
 
         var accounts = source["accounts"].Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var accountFields = accounts[1].TrimEnd('\r').Split(',');
         var unresolved = Copy(source);
         unresolved["accounts"] = unresolved["accounts"].Replace(accountFields[1], Guid.NewGuid().ToString("D"), StringComparison.Ordinal);
-        Assert.Throws<SeedInputException>(() => Parse(unresolved));
+        var referenceError = Assert.Throws<SeedInputException>(() => Parse(unresolved));
+        Assert.Contains("accounts.csv", referenceError.Message);
+        Assert.Contains("row", referenceError.Message);
+        Assert.Contains("reference", referenceError.Message);
 
         var missingHeader = Copy(source);
         missingHeader["customers"] = missingHeader["customers"].Replace(",national_id", "", StringComparison.Ordinal);
@@ -37,6 +43,7 @@ public sealed class SeedValidationTests(PostgresFixture fixture) : IClassFixture
         malformedRow["customers"] = malformedRow["customers"].Replace(customerRows[1], customerRows[1].TrimEnd('\r') + ",extra", StringComparison.Ordinal);
         var error = Assert.Throws<SeedInputException>(() => Parse(malformedRow));
         Assert.Contains("customers.csv", error.Message);
+        Assert.Contains("row", error.Message);
         Assert.DoesNotContain(customerRows[1], error.Message);
     }
 

@@ -90,7 +90,7 @@ test('announces loading and a history read failure', async () => {
   render(<App />);
   fireEvent.click(await screen.findByRole('button', { name: /Customer/ }));
   fireEvent.click(await screen.findByRole('button', { name: /account/ }));
-  expect(screen.getByRole('status')).toHaveTextContent('Loading history');
+  expect(screen.getByText('Loading history...')).toHaveAttribute('role', 'status');
   await act(async () => rejectHistory(new Error('Read failed')));
   expect(await screen.findByRole('alert')).toHaveTextContent('Read failed');
 });

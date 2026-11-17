@@ -1,5 +1,6 @@
 using Banking.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Banking.Api.Data;
 
@@ -12,6 +13,9 @@ public sealed class BankingCommitObserver : IBankingCommitObserver
 {
     public Task BeforeCommitAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
+
+public sealed class BankingCompletionUnknownException(Exception innerException)
+    : Exception("The transaction completion could not be confirmed.", innerException);
 
 public sealed class BankingTransactionCoordinator(BankingDbContext db, IBankingCommitObserver observer)
 {
@@ -32,4 +36,10 @@ public sealed class BankingTransactionCoordinator(BankingDbContext db, IBankingC
             .SingleAsync(cancellationToken);
 
     public Task BeforeCommitAsync(CancellationToken cancellationToken) => observer.BeforeCommitAsync(cancellationToken);
+
+    public async Task CommitAsync(IDbContextTransaction transaction, CancellationToken cancellationToken)
+    {
+        try { await transaction.CommitAsync(cancellationToken); }
+        catch (Exception exception) { throw new BankingCompletionUnknownException(exception); }
+    }
 }

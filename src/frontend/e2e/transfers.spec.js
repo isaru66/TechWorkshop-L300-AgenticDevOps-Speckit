@@ -77,4 +77,9 @@ test('transfers to another account and proves insufficient funds changes neither
   await page.getByRole('button', { name: 'Transfer', exact: true }).click();
   await expect(page.getByText(/insufficient_funds/)).toBeVisible();
   expect(await snapshot(request)).toEqual(after);
+  await page.getByRole('button', { name: 'View destination history' }).click();
+  await expect(page.locator('dd').first()).toHaveText(destination);
+  await expect(page.getByRole('heading', { name: 'Transaction history' })).toBeVisible();
+  await page.getByRole('button', { name: 'View source history' }).click();
+  await expect(page.locator('dd').first()).toHaveText(source);
 });

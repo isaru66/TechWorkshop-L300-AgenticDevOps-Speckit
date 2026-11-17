@@ -77,7 +77,7 @@ public sealed class BankingService(BankingDbContext db, BankingTransactionCoordi
         db.TransactionEntries.AddRange(outgoing, incoming);
         await db.SaveChangesAsync(cancellationToken);
         await coordinator.BeforeCommitAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await coordinator.CommitAsync(transaction, cancellationToken);
         return new TransferOperationDto(TransferDto.From(transfer), BalanceDto.From(source), BalanceDto.From(destination),
             [TransactionEntryDto.From(outgoing), TransactionEntryDto.From(incoming)]);
     }
@@ -119,7 +119,7 @@ public sealed class BankingService(BankingDbContext db, BankingTransactionCoordi
         db.TransactionEntries.Add(entry);
         await db.SaveChangesAsync(cancellationToken);
         await coordinator.BeforeCommitAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await coordinator.CommitAsync(transaction, cancellationToken);
         return new MoneyOperationDto(id, currency, MoneyValue.Format(account.Balance), TransactionEntryDto.From(entry));
     }
 

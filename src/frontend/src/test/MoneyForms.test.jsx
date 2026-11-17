@@ -64,6 +64,7 @@ test('shows an unknown outcome without retrying a failed network submission', as
       ? page([{ id: 'customer', name: 'Customer' }]) : url.includes('/customers/customer/accounts') || url.startsWith('/api/accounts?')
         ? page([account]) : url.includes('/transactions') ? page([]) : account };
   });
+
   vi.stubGlobal('fetch', fetchMock);
   render(<App />);
   fireEvent.click(await screen.findByRole('button', { name: /Customer/ }));
@@ -73,6 +74,26 @@ test('shows an unknown outcome without retrying a failed network submission', as
   expect(await screen.findByText(/Completion is unknown/)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Refresh account' }));
   await waitFor(() => expect(fetchMock.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1));
+});
+
+test.each([500, 503])('treats a %s response as potentially ambiguous without retrying', async (status) => {
+  const account = { id: 'account', customerId: 'customer', currency: 'THB', balance: '10.00' };
+  const page = (items) => ({ items, page: 1, pageSize: 50, totalCount: items.length });
+  const fetchMock = vi.fn(async (url, options) => {
+    if (options?.method === 'POST') return { ok: false, status, json: async () => ({ code: 'operation_unavailable', detail: 'Unavailable.' }) };
+    return { ok: true, json: async () => url.startsWith('/api/customers?')
+      ? page([{ id: 'customer', name: 'Customer' }]) : url.includes('/customers/customer/accounts') || url.startsWith('/api/accounts?')
+        ? page([account]) : url.includes('/transactions') ? page([]) : account };
+  });
+  vi.stubGlobal('fetch', fetchMock);
+  render(<App />);
+  fireEvent.click(await screen.findByRole('button', { name: /Customer/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /account/ }));
+  fireEvent.change(screen.getByLabelText('Deposit amount'), { target: { value: '1.00' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Deposit' }));
+  expect(await screen.findByText(/Completion is unknown/)).toBeInTheDocument();
+  await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url === '/api/accounts/account')).toHaveLength(2));
+  expect(fetchMock.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1);
 });
 
 test('displays the rejection code and reloads the account after a declined withdrawal', async () => {
@@ -94,4 +115,38 @@ test('displays the rejection code and reloads the account after a declined withd
   expect(await screen.findByText(/insufficient_funds/)).toBeInTheDocument();
   await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url === '/api/accounts/account')).toHaveLength(2));
   expect(screen.getByRole('heading', { name: 'THB 10.00' })).toBeInTheDocument();
+});
+
+test.each(['account', 'history'])('retains the successful refresh when %s refresh fails', async (failure) => {
+  let mutated = false;
+  const account = { id: 'account', customerId: 'customer', currency: 'THB', balance: '10.00' };
+  const page = (items) => ({ items, page: 1, pageSize: 50, totalCount: items.length });
+  vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+    if (options?.method === 'POST') {
+      mutated = true;
+      return { ok: true, json: async () => ({ accountId: 'account', balance: '11.00', transaction: { id: 'tx-1' } }) };
+    }
+    if (mutated && (failure === 'account' ? url === '/api/accounts/account' : url.includes('/transactions')))
+      throw new Error(`${failure} refresh failed`);
+    const updated = { ...account, balance: mutated ? '11.00' : '10.00' };
+    const entry = { id: 'tx-1', sequence: '1', type: 'DEPOSIT', amount: '1.00', completedAt: '2026-01-01', resultingBalance: '11.00' };
+    return { ok: true, json: async () => url.startsWith('/api/customers?')
+      ? page([{ id: 'customer', name: 'Customer' }]) : url.includes('/customers/customer/accounts') || url.startsWith('/api/accounts?')
+        ? page([updated]) : url.includes('/transactions') ? page(mutated ? [entry] : []) : updated };
+  }));
+  render(<App />);
+  fireEvent.click(await screen.findByRole('button', { name: /Customer/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /account/ }));
+  await screen.findByRole('heading', { name: 'THB 10.00' });
+  fireEvent.change(screen.getByLabelText('Deposit amount'), { target: { value: '1.00' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Deposit' }));
+  expect(await screen.findByText(/Completed deposit/)).toBeInTheDocument();
+  expect(await screen.findByText(new RegExp(`${failure} refresh failed`))).toBeInTheDocument();
+  if (failure === 'account') {
+    expect(await screen.findByText('DEPOSIT')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'THB 10.00' })).not.toBeInTheDocument();
+  } else {
+    expect(await screen.findByRole('heading', { name: 'THB 11.00' })).toBeInTheDocument();
+    expect(screen.queryByText('DEPOSIT')).not.toBeInTheDocument();
+  }
 });

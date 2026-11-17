@@ -76,6 +76,18 @@ public sealed class ImportConcurrencyTests(PostgresFixture fixture) : IClassFixt
             Assert.Equal("1006", later.Transaction.Sequence);
             Assert.Equal("52609.88", later.Balance);
         }
+        entryRow[0] = Guid.NewGuid().ToString();
+        entryRow[1] = "1006";
+        files["transaction_entries"] += "\n" + string.Join(',', entryRow) + "\n";
+        var conflicting = SeedCsvReader.ReadSources(type => new StringReader(files[type]));
+        await using var collisionDb = fixture.CreateContext();
+        var collisionImporter = new SeedImporter(collisionDb, new BankingTransactionCoordinator(collisionDb, new BankingCommitObserver()));
+        var before = await RepeatImportTests.Snapshot(collisionDb);
+        var error = await Assert.ThrowsAsync<SeedInputException>(() => collisionImporter.ImportBatchAsync(conflicting));
+        Assert.Contains("transaction_entries.csv", error.Message);
+        Assert.Contains(entryRow[0], error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("1006", error.Message);
+        Assert.Equal(before, await RepeatImportTests.Snapshot(collisionDb));
     }
 
     private sealed class BlockingObserver : IBankingCommitObserver

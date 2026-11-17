@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { formatMoney, validAmount } from '../api/money.js';
 import Pagination from './Pagination.jsx';
 
-export default function TransferForm({ sourceId, accounts, pending, onSubmit, onPageChange }) {
+export default function TransferForm({ sourceId, accounts, pending, onSubmit, onPageChange, balancesAvailable = true }) {
   const [destination, setDestination] = useState(null);
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -30,7 +30,9 @@ export default function TransferForm({ sourceId, accounts, pending, onSubmit, on
         <select id="destination-account" value={destination?.id ?? ''} onChange={(event) =>
           setDestination(options.find((account) => account.id === event.target.value) ?? null)}>
           <option value="">Select a destination</option>
-          {options.map((account) => <option key={account.id} value={account.id}>{account.id} - {formatMoney(account.balance)}</option>)}
+          {options.map((account) => <option key={account.id} value={account.id}>{account.id}
+            {balancesAvailable && accounts.items.some((item) => item.id === account.id)
+              ? ` - ${formatMoney(account.balance)}` : ' - balance unavailable'}</option>)}
         </select>
         <label htmlFor="transfer-amount">Transfer amount</label>
         <input id="transfer-amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />

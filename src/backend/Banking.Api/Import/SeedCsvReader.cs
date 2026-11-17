@@ -52,8 +52,8 @@ public static partial class SeedCsvReader
             using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 DetectColumnCountChanges = true,
-                BadDataFound = _ => throw new SeedInputException($"{type}.csv: invalid CSV format."),
-                MissingFieldFound = _ => throw new SeedInputException($"{type}.csv: missing field.")
+                BadDataFound = args => throw new SeedInputException($"{type}.csv: invalid CSV format at row {args.Context.Parser?.Row ?? 0}."),
+                MissingFieldFound = args => throw new SeedInputException($"{type}.csv: missing field at row {args.Context.Parser?.Row ?? 0}.")
             });
 
             bool ReadRecord()
@@ -204,13 +204,26 @@ public static partial class SeedCsvReader
         var transfers = rows["transfers"].ToDictionary(row => row.Id, row => (Transfer)row.Entity);
         var entries = rows["transaction_entries"].Select(row => (TransactionEntry)row.Entity).ToList();
 
-        if (accounts.Values.Any(account => !customers.ContainsKey(account.CustomerId)) ||
-            transfers.Values.Any(transfer => !accounts.ContainsKey(transfer.SourceAccountId) || !accounts.ContainsKey(transfer.DestinationAccountId)) ||
-            entries.Select(entry => entry.Sequence).Distinct().Count() != entries.Count ||
-            entries.Any(entry => !accounts.ContainsKey(entry.AccountId) ||
+        foreach (var row in rows["accounts"])
+            if (!customers.ContainsKey(((Account)row.Entity).CustomerId))
+                throw new SeedInputException($"accounts.csv: unresolved customer reference for UUID {row.Id:D} at row {row.RowNumber}.");
+        foreach (var row in rows["transfers"])
+        {
+            var transfer = (Transfer)row.Entity;
+            if (!accounts.ContainsKey(transfer.SourceAccountId) || !accounts.ContainsKey(transfer.DestinationAccountId))
+                throw new SeedInputException($"transfers.csv: unresolved account reference for UUID {row.Id:D} at row {row.RowNumber}.");
+        }
+        var sequences = new HashSet<long>();
+        foreach (var row in rows["transaction_entries"])
+        {
+            var entry = (TransactionEntry)row.Entity;
+            if (!sequences.Add(entry.Sequence))
+                throw new SeedInputException($"transaction_entries.csv: duplicate sequence {entry.Sequence} for UUID {row.Id:D} at row {row.RowNumber}.");
+            if (!accounts.ContainsKey(entry.AccountId) ||
                 (entry.CounterpartyAccountId.HasValue && !accounts.ContainsKey(entry.CounterpartyAccountId.Value)) ||
-                (entry.TransferId.HasValue && !transfers.ContainsKey(entry.TransferId.Value))))
-            throw new SeedInputException("Seed files contain duplicate sequences or unresolved references.");
+                (entry.TransferId.HasValue && !transfers.ContainsKey(entry.TransferId.Value)))
+                throw new SeedInputException($"transaction_entries.csv: unresolved reference for UUID {row.Id:D} at row {row.RowNumber}.");
+        }
 
         foreach (var transfer in transfers.Values)
         {

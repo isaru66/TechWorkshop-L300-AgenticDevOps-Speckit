@@ -4,6 +4,8 @@ using Banking.Api.Import;
 using Banking.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using System.Text.Json.Nodes;
 
 var isSeedImport = args.Contains("--import-seed", StringComparer.Ordinal);
 var builder = WebApplication.CreateBuilder(isSeedImport ? [] : args);
@@ -44,10 +46,16 @@ builder.Services.AddOpenApi(options =>
         var propertyName = context.JsonPropertyInfo?.Name;
         if (propertyName is "amount" or "balance" or "resultingBalance")
         {
-            schema.Pattern = propertyName == "amount"
-                ? @"^[0-9]{1,16}(\.[0-9]{1,2})?$"
+            var requestAmount = propertyName == "amount" &&
+                context.JsonPropertyInfo?.DeclaringType is { } type &&
+                (type == typeof(MoneyOperationRequest) || type == typeof(TransferRequest));
+            schema.Pattern = requestAmount
+                ? @"^(?=.*[1-9])[0-9]{1,16}(\.[0-9]{1,2})?$"
+                : propertyName == "amount" ? @"^(?=.*[1-9])[0-9]{1,16}\.[0-9]{2}$"
                 : @"^[0-9]{1,16}\.[0-9]{2}$";
+            schema.Type = JsonSchemaType.String;
             schema.Description = "THB amount encoded as a decimal string, never a JSON number.";
+            schema.Examples = [JsonValue.Create("100.00")!];
         }
         return Task.CompletedTask;
     });

@@ -250,3 +250,12 @@ Complete T001-T029. Demonstrate private import plus customer/account/balance/his
 - No extra architecture layers, authentication, public deployment, MCP, real financial data, or customer branding.
 - Do not reset or delete development data to satisfy a test. Test fixture cleanup targets only a fixture-owned isolated schema.
 - Task completion requires implemented behavior and the relevant checkpoint evidence, not merely creation of the named files.
+
+## Phase 8: Convergence
+
+- [X] T063 Ensure rejected, successful, and uncertain transfers retain access to both affected accounts and their refreshed balances and complete histories, including destinations selected on another page; add focused UI coverage per US3/AC4, FR-013, T045 and T046 (partial)
+- [X] T064 Distinguish potentially ambiguous server-side commit failures from confirmed rejections for deposits, withdrawals, and transfers; show reconciliation guidance, refresh affected accounts, and never retry automatically, with focused failure-path tests per plan: API and banking service and T015 (partial)
+- [X] T065 Identify duplicate historical sequences, unresolved references, malformed CSV records, and conflicts with existing live sequences using sanitized file and row or UUID diagnostics; reject the entire import without mutation and cover these cases per US4/AC4, FR-005 and T024 (partial)
+- [X] T066 Refresh selected-account balance and history independently after money-operation outcomes, retain successful reads, and clearly mark failed or stale information without obscuring the operation result; add focused UI tests per US2/AC4, FR-013 and T037 (partial)
+- [X] T067 Complete generated OpenAPI metadata for read response DTOs and applicable error responses, document accurate decimal-string schemas with examples, and verify the generated document per plan: API and banking service and T018 (partial)
+- [X] T068 Exercise invalid and conflicting imports through the import entry point using isolated fixtures and compare complete entity and seed-metadata snapshots before and after each rejection per T050 and SC-002 (partial)

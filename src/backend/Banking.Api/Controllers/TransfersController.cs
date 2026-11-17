@@ -6,18 +6,26 @@ namespace Banking.Api.Controllers;
 
 [ApiController]
 [Route("api/transfers")]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable, "application/problem+json")]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError, "application/problem+json")]
 public sealed class TransfersController(BankingService service) : ControllerBase
 {
     [HttpGet]
+    [ProducesResponseType<PageResult<TransferDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken cancellationToken = default) =>
         Ok(await service.TransfersAsync(page, pageSize, cancellationToken));
 
     [HttpGet("{transferId}")]
+    [ProducesResponseType<TransferDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
     public async Task<IActionResult> Get(string transferId, CancellationToken cancellationToken) =>
         Ok(await service.TransferAsync(RouteId.Parse(transferId), cancellationToken));
 
     [HttpPost]
     [ProducesResponseType<TransferOperationDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
     public async Task<IActionResult> Create(TransferRequest request, CancellationToken cancellationToken)
     {
         if (!request.SourceAccountId.HasValue || !request.DestinationAccountId.HasValue)
