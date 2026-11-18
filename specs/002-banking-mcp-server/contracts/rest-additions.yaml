@@ -1,0 +1,74 @@
+openapi: 3.0.3
+info:
+  title: Banking REST additions (feature 002)
+  version: 0.1.0
+  description: >
+    New endpoints only. All existing endpoints from specs/001-local-banking-api are unchanged.
+    Existing account responses gain additive fields `status` and `label`.
+paths:
+  /api/customers/{customerId}:
+    put:
+      summary: Update a customer's descriptive fields
+      parameters:
+        - {name: customerId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CustomerInput'}
+      responses:
+        '200': {description: Updated customer}
+        '400': {description: VALIDATION_ERROR}
+        '404': {description: NOT_FOUND}
+    delete:
+      summary: Delete a customer that has no accounts
+      parameters:
+        - {name: customerId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '204': {description: Deleted}
+        '404': {description: NOT_FOUND}
+        '409': {description: CUSTOMER_HAS_ACCOUNTS}
+  /api/accounts/{accountId}:
+    patch:
+      summary: Update account label
+      parameters:
+        - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label: {type: string, maxLength: 100}
+      responses:
+        '200': {description: Updated account}
+        '404': {description: NOT_FOUND}
+  /api/accounts/{accountId}/close:
+    post:
+      summary: Close a zero-balance account
+      parameters:
+        - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: Closed account}
+        '404': {description: NOT_FOUND}
+        '409': {description: NON_ZERO_BALANCE or ACCOUNT_CLOSED}
+components:
+  schemas:
+    CustomerInput:
+      type: object
+      required: [name]
+      description: Same shape as the existing create-customer request.
+      properties:
+        name: {type: string}
+        englishName: {type: string}
+        email: {type: string, format: email}
+        phone: {type: string}
+        addressLine: {type: string}
+        subdistrict: {type: string}
+        district: {type: string}
+        province: {type: string}
+        postcode: {type: string}
+        dateOfBirth: {type: string, format: date}
+        occupation: {type: string}
+        nationalId: {type: string}
