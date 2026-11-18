@@ -105,4 +105,5 @@ The assistant can show the transaction history for an account.
 - Hosted within the existing banking application, reusing its data and rules; existing functionality is unchanged.
 - Delivered over an HTTP endpoint; local stdio is out of scope.
 - A single currency; no external payment networks.
-- Deleting a customer with accounts follows the existing banking application's rules.
+- A customer with accounts, or an account with a nonzero balance or history, cannot be deleted.
+- Accounts have no editable attributes; "update" for accounts is not offered (balances change only through deposits, withdrawals, and transfers).
