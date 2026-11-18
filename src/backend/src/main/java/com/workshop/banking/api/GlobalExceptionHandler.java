@@ -20,6 +20,7 @@ public class GlobalExceptionHandler {
         HttpStatus status = switch (e.getCode()) {
             case "NOT_FOUND" -> HttpStatus.NOT_FOUND;
             case "VALIDATION_ERROR" -> HttpStatus.BAD_REQUEST;
+            case "ACCOUNT_CLOSED", "NON_ZERO_BALANCE", "CUSTOMER_HAS_ACCOUNTS" -> HttpStatus.CONFLICT;
             default -> HttpStatus.UNPROCESSABLE_ENTITY;
         };
         return ResponseEntity.status(status).body(new ApiError(e.getCode(), e.getMessage(), null));

@@ -38,6 +38,7 @@ public class Customer {
 
     public UUID getId() { return id; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public Instant getCreatedAt() { return createdAt; }
     public String getEnglishName() { return englishName; }
     public void setEnglishName(String v) { this.englishName = v; }

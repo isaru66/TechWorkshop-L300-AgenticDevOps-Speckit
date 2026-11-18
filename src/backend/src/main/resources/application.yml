@@ -15,6 +15,18 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  ai:
+    mcp:
+      server:
+        name: local-banking-mcp
+        version: 1.0.0
+        type: SYNC
+        protocol: STATELESS
+        instructions: >
+          Local demo banking MCP server (no authentication). Manage customers and accounts,
+          deposit, withdraw, transfer funds (THB), and read transaction history.
+        streamable-http:
+          mcp-endpoint: /mcp
 
 springdoc:
   api-docs:

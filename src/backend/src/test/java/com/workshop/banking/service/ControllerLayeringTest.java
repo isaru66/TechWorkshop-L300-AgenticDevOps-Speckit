@@ -23,4 +23,18 @@ class ControllerLayeringTest {
             });
         }
     }
+
+    @Test
+    void mcpToolsOnlyDelegateToBankingService() throws Exception {
+        try (Stream<Path> files = Files.list(Path.of("src/main/java/com/workshop/banking/mcp"))) {
+            files.forEach(p -> {
+                try {
+                    String src = Files.readString(p);
+                    assertThat(src).as(p.toString()).doesNotContain("Repository").doesNotContain(".repository.");
+                } catch (Exception e) {
+                    throw new IllegalStateException(e);
+                }
+            });
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.workshop.banking.service;
 
 import com.workshop.banking.api.dto.ApiDtos.CustomerInput;
 import com.workshop.banking.domain.Account;
+import com.workshop.banking.domain.AccountStatus;
 import com.workshop.banking.domain.Customer;
 import com.workshop.banking.domain.EntryType;
 import com.workshop.banking.domain.Transfer;
@@ -12,6 +13,7 @@ import com.workshop.banking.repository.TransactionEntryRepository;
 import com.workshop.banking.repository.TransferRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -28,6 +30,8 @@ public class BankingService {
 
     public static final String CURRENCY = "THB";
     private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_LABEL = 100;
+    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Pattern AMOUNT = Pattern.compile("^\\d{1,17}(\\.\\d{1,2})?$");
 
     private final CustomerRepository customers;
@@ -83,29 +87,71 @@ public class BankingService {
 
     @Transactional
     public Customer createCustomer(CustomerInput in) {
-        if (in.name() == null || in.name().isBlank()) {
-            throw BankingException.invalid("name is required");
-        }
+        validateCustomer(in);
         Customer c = new Customer(UUID.randomUUID(), in.name().trim(), Instant.now());
-        c.setEnglishName(in.englishName());
-        c.setEmail(in.email());
-        c.setPhone(in.phone());
-        c.setAddressLine(in.addressLine());
-        c.setSubdistrict(in.subdistrict());
-        c.setDistrict(in.district());
-        c.setProvince(in.province());
-        c.setPostcode(in.postcode());
-        c.setDateOfBirth(in.dateOfBirth());
-        c.setOccupation(in.occupation());
-        c.setNationalId(in.nationalId());
+        applyCustomer(c, in);
+        return customers.save(c);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Customer> searchCustomers(String query, int page, int size) {
+        if (query == null || query.isBlank()) {
+            throw BankingException.invalid("query is required");
+        }
+        PageRequest pr = pageRequest(page, size, Sort.by("createdAt", "id"));
+        return customers.search("%" + query.trim().toLowerCase() + "%", pr);
+    }
+
+    @Transactional
+    public Customer updateCustomer(UUID id, CustomerInput in) {
+        validateCustomer(in);
+        Customer c = getCustomer(id);
+        c.setName(in.name().trim());
+        applyCustomer(c, in);
         return customers.save(c);
     }
 
     @Transactional
+    public void deleteCustomer(UUID id) {
+        Customer c = getCustomer(id);
+        if (accounts.existsByCustomerId(id)) {
+            throw BankingException.customerHasAccounts();
+        }
+        customers.delete(c);
+    }
+
+    @Transactional
     public Account openAccount(UUID customerId) {
+        return openAccount(customerId, null);
+    }
+
+    @Transactional
+    public Account openAccount(UUID customerId, String label) {
         getCustomer(customerId);
-        return accounts.save(new Account(UUID.randomUUID(), customerId, CURRENCY,
-                BigDecimal.ZERO.setScale(2), Instant.now()));
+        Account account = new Account(UUID.randomUUID(), customerId, CURRENCY,
+                BigDecimal.ZERO.setScale(2), Instant.now());
+        account.setLabel(normalizeLabel(label));
+        return accounts.save(account);
+    }
+
+    @Transactional
+    public Account updateAccount(UUID accountId, String label) {
+        Account account = getAccount(accountId);
+        account.setLabel(normalizeLabel(label));
+        return accounts.save(account);
+    }
+
+    @Transactional
+    public Account closeAccount(UUID accountId) {
+        Account account = lock(accountId);
+        if (account.getStatus() == AccountStatus.CLOSED) {
+            throw BankingException.accountClosed();
+        }
+        if (account.getBalance().signum() != 0) {
+            throw BankingException.nonZeroBalance();
+        }
+        account.setStatus(AccountStatus.CLOSED);
+        return accounts.save(account);
     }
 
     // ---- money movements ---------------------------------------------------
@@ -113,7 +159,7 @@ public class BankingService {
     @Transactional
     public TransactionEntry deposit(UUID accountId, String rawAmount) {
         BigDecimal amount = parseAmount(rawAmount);
-        Account account = lock(accountId);
+        Account account = lockOpen(accountId);
         account.setBalance(account.getBalance().add(amount));
         return record(account, EntryType.DEPOSIT, amount, Instant.now(), null, null);
     }
@@ -121,7 +167,7 @@ public class BankingService {
     @Transactional
     public TransactionEntry withdraw(UUID accountId, String rawAmount) {
         BigDecimal amount = parseAmount(rawAmount);
-        Account account = lock(accountId);
+        Account account = lockOpen(accountId);
         if (account.getBalance().compareTo(amount) < 0) {
             throw BankingException.insufficientFunds();
         }
@@ -142,6 +188,9 @@ public class BankingService {
         Account source = sourceFirst ? first : second;
         Account destination = sourceFirst ? second : first;
 
+        if (source.getStatus() == AccountStatus.CLOSED || destination.getStatus() == AccountStatus.CLOSED) {
+            throw BankingException.accountClosed();
+        }
         if (!source.getCurrency().equals(destination.getCurrency())) {
             throw BankingException.currencyMismatch();
         }
@@ -162,6 +211,51 @@ public class BankingService {
 
     private Account lock(UUID id) {
         return accounts.findByIdForUpdate(id).orElseThrow(() -> BankingException.notFound("Account"));
+    }
+
+    private Account lockOpen(UUID id) {
+        Account account = lock(id);
+        if (account.getStatus() == AccountStatus.CLOSED) {
+            throw BankingException.accountClosed();
+        }
+        return account;
+    }
+
+    private static void validateCustomer(CustomerInput in) {
+        if (in.name() == null || in.name().isBlank()) {
+            throw BankingException.invalid("name is required");
+        }
+        if (in.email() != null && !in.email().isBlank() && !EMAIL.matcher(in.email().trim()).matches()) {
+            throw BankingException.invalid("email must be a valid email address");
+        }
+        if (in.dateOfBirth() != null && !in.dateOfBirth().isBefore(LocalDate.now())) {
+            throw BankingException.invalid("dateOfBirth must be in the past");
+        }
+    }
+
+    private static void applyCustomer(Customer c, CustomerInput in) {
+        c.setEnglishName(in.englishName());
+        c.setEmail(in.email());
+        c.setPhone(in.phone());
+        c.setAddressLine(in.addressLine());
+        c.setSubdistrict(in.subdistrict());
+        c.setDistrict(in.district());
+        c.setProvince(in.province());
+        c.setPostcode(in.postcode());
+        c.setDateOfBirth(in.dateOfBirth());
+        c.setOccupation(in.occupation());
+        c.setNationalId(in.nationalId());
+    }
+
+    private static String normalizeLabel(String label) {
+        if (label == null || label.isBlank()) {
+            return null;
+        }
+        String trimmed = label.trim();
+        if (trimmed.length() > MAX_LABEL) {
+            throw BankingException.invalid("label must be at most " + MAX_LABEL + " characters");
+        }
+        return trimmed;
     }
 
     private TransactionEntry record(Account account, EntryType type, BigDecimal amount, Instant at,

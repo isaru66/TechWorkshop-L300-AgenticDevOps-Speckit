@@ -1,6 +1,7 @@
 package com.workshop.banking.api;
 
 import com.workshop.banking.api.dto.ApiDtos.AccountResponse;
+import com.workshop.banking.api.dto.ApiDtos.AccountUpdate;
 import com.workshop.banking.api.dto.ApiDtos.AmountRequest;
 import com.workshop.banking.api.dto.ApiDtos.BalanceResponse;
 import com.workshop.banking.api.dto.ApiDtos.PageResponse;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +56,16 @@ public class AccountController {
     @ResponseStatus(HttpStatus.CREATED)
     public TransactionEntryResponse withdraw(@PathVariable UUID accountId, @Valid @RequestBody AmountRequest body) {
         return TransactionEntryResponse.from(service.withdraw(accountId, body.amount()));
+    }
+
+    @PatchMapping("/{accountId}")
+    public AccountResponse update(@PathVariable UUID accountId, @RequestBody AccountUpdate body) {
+        return AccountResponse.from(service.updateAccount(accountId, body.label()));
+    }
+
+    @PostMapping("/{accountId}/close")
+    public AccountResponse close(@PathVariable UUID accountId) {
+        return AccountResponse.from(service.closeAccount(accountId));
     }
 
     @GetMapping("/{accountId}/transactions")

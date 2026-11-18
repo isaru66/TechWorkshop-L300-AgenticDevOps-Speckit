@@ -64,11 +64,18 @@ public final class ApiDtos {
         }
     }
 
-    public record AccountResponse(UUID id, UUID customerId, String currency, String balance, Instant createdAt) {
+    public record AccountResponse(UUID id, UUID customerId, String currency, String balance, Instant createdAt,
+                                  String status, String label) {
         public static AccountResponse from(Account a) {
             return new AccountResponse(a.getId(), a.getCustomerId(), a.getCurrency(), money(a.getBalance()),
-                    a.getCreatedAt());
+                    a.getCreatedAt(), a.getStatus().name(), a.getLabel());
         }
+    }
+
+    public record AccountUpdate(String label) {
+    }
+
+    public record OpenAccountRequest(String label) {
     }
 
     public record BalanceResponse(UUID accountId, String currency, String balance) {

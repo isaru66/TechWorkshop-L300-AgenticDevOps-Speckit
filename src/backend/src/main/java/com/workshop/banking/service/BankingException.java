@@ -21,6 +21,18 @@ public class BankingException extends RuntimeException {
         return new BankingException("VALIDATION_ERROR", message);
     }
 
+    public static BankingException accountClosed() {
+        return new BankingException("ACCOUNT_CLOSED", "Account is closed");
+    }
+
+    public static BankingException nonZeroBalance() {
+        return new BankingException("NON_ZERO_BALANCE", "Account balance must be zero to close it");
+    }
+
+    public static BankingException customerHasAccounts() {
+        return new BankingException("CUSTOMER_HAS_ACCOUNTS", "Customer still has accounts and cannot be deleted");
+    }
+
     public static BankingException insufficientFunds() {
         return new BankingException("INSUFFICIENT_FUNDS", "Insufficient funds");
     }

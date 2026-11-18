@@ -17,22 +17,22 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Add `spring-ai-bom` 2.0.2 to `<dependencyManagement>` and the `org.springframework.ai:spring-ai-starter-mcp-server-webmvc` dependency to `src/backend/pom.xml`; run `mvn -f src/backend/pom.xml -q compile` and, if 2.0.2 is incompatible with Spring Boot 4.1.2, use the nearest compatible 2.0.x and record the final version in `specs/002-banking-mcp-server/research.md` (R1)
-- [ ] T002 [P] Configure MCP in `src/backend/src/main/resources/application.yml`: `spring.ai.mcp.server.protocol: STATELESS`, Streamable HTTP endpoint `/mcp`, server name `local-banking-mcp`, version, and instructions text; keep `server.address: 127.0.0.1` and port 8080
+- [X] T001 Add `spring-ai-bom` 2.0.2 to `<dependencyManagement>` and the `org.springframework.ai:spring-ai-starter-mcp-server-webmvc` dependency to `src/backend/pom.xml`; run `mvn -f src/backend/pom.xml -q compile` and, if 2.0.2 is incompatible with Spring Boot 4.1.2, use the nearest compatible 2.0.x and record the final version in `specs/002-banking-mcp-server/research.md` (R1)
+- [X] T002 [P] Configure MCP in `src/backend/src/main/resources/application.yml`: `spring.ai.mcp.server.protocol: STATELESS`, Streamable HTTP endpoint `/mcp`, server name `local-banking-mcp`, version, and instructions text; keep `server.address: 127.0.0.1` and port 8080
 
 ---
 
 ## Phase 2: Foundational (blocks all user stories)
 
-- [ ] T003 Create Flyway migration `src/backend/src/main/resources/db/migration/V2__account_status_and_label.sql`: add `account.status text NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN','CLOSED'))` and `account.label text NULL` (max 100 chars enforced via `CHECK (char_length(label) <= 100)`)
-- [ ] T004 Add `status` (OPEN|CLOSED, default OPEN) and `label` fields with getters/setters to `{main}domain/Account.java`; add an `AccountStatus` enum in `{main}domain/AccountStatus.java`
-- [ ] T005 Expose `status` and `label` additively in the account response DTO in `{main}api/dto/ApiDtos.java` (existing fields and shapes unchanged)
-- [ ] T006 [P] Add error factories to `{main}service/BankingException.java`: `accountClosed()` -> `ACCOUNT_CLOSED`, `nonZeroBalance()` -> `NON_ZERO_BALANCE`, `customerHasAccounts()` -> `CUSTOMER_HAS_ACCOUNTS`; map the new codes to HTTP 409 in `{main}api/GlobalExceptionHandler.java`
-- [ ] T007 Create `{main}mcp/McpErrorMapper.java` converting `BankingException` to a tool error result (`isError=true`, text `"<CODE>: <message>"`) and unexpected exceptions to a generic error without stack traces
-- [ ] T008 Create the tool class skeleton `{main}mcp/BankingMcpTools.java` (`@Component`, constructor-injects only `BankingService`, no repositories) with a shared helper that wraps each call with `McpErrorMapper` and serializes results to JSON text using existing DTO shapes
-- [ ] T009 [P] Create `{test}mcp/McpToolsIT.java` scaffold extending `{test}support/PostgresIntegrationTest.java` with helpers to POST JSON-RPC to `/mcp` with headers `Content-Type: application/json` and `Accept: application/json, text/event-stream` and parse JSON or SSE `data:` framing; add a test that `initialize` returns `serverInfo` and `capabilities.tools`
-- [ ] T010 Extend `{test}service/ControllerLayeringTest.java` so classes in `{main}mcp` may not depend on `repository` or `domain` repositories (tools delegate to `BankingService` only)
-- [ ] T011 [P] Create `src/backend/test.http` header section: `@baseUrl = http://127.0.0.1:8080`, reusable headers comment, and the `initialize` request (`protocolVersion`, `capabilities`, `clientInfo`) plus `notifications/initialized` and `tools/list` requests with `# Expected:` comments (16 tools); no session header (stateless)
+- [X] T003 Create Flyway migration `src/backend/src/main/resources/db/migration/V2__account_status_and_label.sql`: add `account.status text NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN','CLOSED'))` and `account.label text NULL` (max 100 chars enforced via `CHECK (char_length(label) <= 100)`)
+- [X] T004 Add `status` (OPEN|CLOSED, default OPEN) and `label` fields with getters/setters to `{main}domain/Account.java`; add an `AccountStatus` enum in `{main}domain/AccountStatus.java`
+- [X] T005 Expose `status` and `label` additively in the account response DTO in `{main}api/dto/ApiDtos.java` (existing fields and shapes unchanged)
+- [X] T006 [P] Add error factories to `{main}service/BankingException.java`: `accountClosed()` -> `ACCOUNT_CLOSED`, `nonZeroBalance()` -> `NON_ZERO_BALANCE`, `customerHasAccounts()` -> `CUSTOMER_HAS_ACCOUNTS`; map the new codes to HTTP 409 in `{main}api/GlobalExceptionHandler.java`
+- [X] T007 Create `{main}mcp/McpErrorMapper.java` converting `BankingException` to a tool error result (`isError=true`, text `"<CODE>: <message>"`) and unexpected exceptions to a generic error without stack traces
+- [X] T008 Create the tool class skeleton `{main}mcp/BankingMcpTools.java` (`@Component`, constructor-injects only `BankingService`, no repositories) with a shared helper that wraps each call with `McpErrorMapper` and serializes results to JSON text using existing DTO shapes
+- [X] T009 [P] Create `{test}mcp/McpToolsIT.java` scaffold extending `{test}support/PostgresIntegrationTest.java` with helpers to POST JSON-RPC to `/mcp` with headers `Content-Type: application/json` and `Accept: application/json, text/event-stream` and parse JSON or SSE `data:` framing; add a test that `initialize` returns `serverInfo` and `capabilities.tools`
+- [X] T010 Extend `{test}service/ControllerLayeringTest.java` so classes in `{main}mcp` may not depend on `repository` or `domain` repositories (tools delegate to `BankingService` only)
+- [X] T011 [P] Create `src/backend/test.http` header section: `@baseUrl = http://127.0.0.1:8080`, reusable headers comment, and the `initialize` request (`protocolVersion`, `capabilities`, `clientInfo`) plus `notifications/initialized` and `tools/list` requests with `# Expected:` comments (16 tools); no session header (stateless)
 
 **Checkpoint**: App starts, `V2` applies, `/mcp` answers `initialize` and `tools/list` (empty/partial list), existing tests still pass (`mvn -f src/backend/pom.xml verify`).
 
@@ -46,13 +46,13 @@
 
 ### Tests for US1
 
-- [ ] T012 [P] [US1] In `{test}mcp/McpToolsIT.java` add tests: `tools/list` contains read tools with descriptions; `list_customers`, `search_customers` (match on name/English name/email/phone, case-insensitive), `get_customer`, `list_customer_accounts`, `get_account`, `get_account_balance`, `get_transaction_history` (newest first, `size` max 100) return data equal to the corresponding REST responses; unknown id -> `isError` with `NOT_FOUND`; `size=101` -> `VALIDATION_ERROR`
+- [X] T012 [P] [US1] In `{test}mcp/McpToolsIT.java` add tests: `tools/list` contains read tools with descriptions; `list_customers`, `search_customers` (match on name/English name/email/phone, case-insensitive), `get_customer`, `list_customer_accounts`, `get_account`, `get_account_balance`, `get_transaction_history` (newest first, `size` max 100) return data equal to the corresponding REST responses; unknown id -> `isError` with `NOT_FOUND`; `size=101` -> `VALIDATION_ERROR`
 
 ### Implementation for US1
 
-- [ ] T013 [US1] Add `searchCustomers(String query, int page, int size)` to `{main}service/BankingService.java` (case-insensitive match on name, englishName, email, phone; reuse `pageRequest` bounds, page size max 100; blank query -> `VALIDATION_ERROR`) and a matching query method in `{main}repository/CustomerRepository.java`
-- [ ] T014 [US1] Implement tools `list_customers`, `search_customers`, `get_customer`, `list_customer_accounts`, `get_account`, `get_account_balance`, `get_transaction_history` in `{main}mcp/BankingMcpTools.java` with `@McpTool` descriptions and `@McpToolParam` descriptions per `contracts/mcp-tools.md` (ids as UUID strings, `page` default 0, `size` default 20)
-- [ ] T015 [US1] Add US1 requests to `src/backend/test.http`: `search_customers` named request (`# @name searchCustomers`) capturing a seeded customer id via `{{searchCustomers.response.body...}}` (or a documented variable), then `list_customer_accounts`, `get_account_balance`, `get_transaction_history`, plus a `get_customer` unknown-id error case, each with `# Expected:` comment and sample (fictional, client-neutral) data
+- [X] T013 [US1] Add `searchCustomers(String query, int page, int size)` to `{main}service/BankingService.java` (case-insensitive match on name, englishName, email, phone; reuse `pageRequest` bounds, page size max 100; blank query -> `VALIDATION_ERROR`) and a matching query method in `{main}repository/CustomerRepository.java`
+- [X] T014 [US1] Implement tools `list_customers`, `search_customers`, `get_customer`, `list_customer_accounts`, `get_account`, `get_account_balance`, `get_transaction_history` in `{main}mcp/BankingMcpTools.java` with `@McpTool` descriptions and `@McpToolParam` descriptions per `contracts/mcp-tools.md` (ids as UUID strings, `page` default 0, `size` default 20)
+- [X] T015 [US1] Add US1 requests to `src/backend/test.http`: `search_customers` named request (`# @name searchCustomers`) capturing a seeded customer id via `{{searchCustomers.response.body...}}` (or a documented variable), then `list_customer_accounts`, `get_account_balance`, `get_transaction_history`, plus a `get_customer` unknown-id error case, each with `# Expected:` comment and sample (fictional, client-neutral) data
 
 **Checkpoint**: US1 independently demonstrable (MVP).
 
@@ -66,17 +66,17 @@
 
 ### Tests for US2
 
-- [ ] T016 [P] [US2] Create `{test}service/AccountLifecycleIT.java` (extends `PostgresIntegrationTest`): update customer changes only descriptive fields; blank name -> `VALIDATION_ERROR`; close with non-zero balance -> `NON_ZERO_BALANCE`; close zero-balance -> status `CLOSED`, history still readable; close twice -> `ACCOUNT_CLOSED`; delete customer with open or closed account -> `CUSTOMER_HAS_ACCOUNTS`; delete customer with no accounts succeeds then `NOT_FOUND`; deposit/withdraw/transfer touching a closed account -> `ACCOUNT_CLOSED` with balances unchanged
-- [ ] T017 [P] [US2] In `{test}mcp/McpToolsIT.java` add tests for `create_customer`, `update_customer`, `delete_customer`, `open_account`, `update_account`, `close_account` success and error paths (error text begins with the code)
-- [ ] T018 [P] [US2] In `{test}api/BrowseAndCreateApiIT.java` (or a new `{test}api/LifecycleApiIT.java`) add REST tests for `PUT/DELETE /api/customers/{id}`, `PATCH /api/accounts/{id}`, `POST /api/accounts/{id}/close` (200/204/404/409) and that existing endpoints still behave as before
+- [X] T016 [P] [US2] Create `{test}service/AccountLifecycleIT.java` (extends `PostgresIntegrationTest`): update customer changes only descriptive fields; blank name -> `VALIDATION_ERROR`; close with non-zero balance -> `NON_ZERO_BALANCE`; close zero-balance -> status `CLOSED`, history still readable; close twice -> `ACCOUNT_CLOSED`; delete customer with open or closed account -> `CUSTOMER_HAS_ACCOUNTS`; delete customer with no accounts succeeds then `NOT_FOUND`; deposit/withdraw/transfer touching a closed account -> `ACCOUNT_CLOSED` with balances unchanged
+- [X] T017 [P] [US2] In `{test}mcp/McpToolsIT.java` add tests for `create_customer`, `update_customer`, `delete_customer`, `open_account`, `update_account`, `close_account` success and error paths (error text begins with the code)
+- [X] T018 [P] [US2] In `{test}api/BrowseAndCreateApiIT.java` (or a new `{test}api/LifecycleApiIT.java`) add REST tests for `PUT/DELETE /api/customers/{id}`, `PATCH /api/accounts/{id}`, `POST /api/accounts/{id}/close` (200/204/404/409) and that existing endpoints still behave as before
 
 ### Implementation for US2
 
-- [ ] T019 [US2] In `{main}service/BankingService.java` add `updateCustomer(UUID, CustomerInput)` (name required non-blank; email format validated; `id`/`createdAt` immutable; same validation as create), `deleteCustomer(UUID)` (refuse with `customerHasAccounts()` if any account exists, including CLOSED), `updateAccount(UUID, String label)` (label max 100 chars, `VALIDATION_ERROR` otherwise), `closeAccount(UUID)` (lock row; refuse non-zero balance with `nonZeroBalance()`; already closed -> `accountClosed()`; set status CLOSED); extend `openAccount(UUID, String label)` keeping the existing one-arg behavior; add repository support (`existsByCustomerId` or equivalent) in `{main}repository/AccountRepository.java`
-- [ ] T020 [US2] In `{main}service/BankingService.java` reject `deposit`, `withdraw`, and `transfer` when any involved account is CLOSED (`accountClosed()`), checked after locking and before changing balances; `getHistory` and reads remain allowed for closed accounts
-- [ ] T021 [P] [US2] Add REST endpoints per `contracts/rest-additions.yaml` in `{main}api/CustomerController.java` (`PUT /api/customers/{customerId}`, `DELETE /api/customers/{customerId}` -> 204) and `{main}api/AccountController.java` (`PATCH /api/accounts/{accountId}`, `POST /api/accounts/{accountId}/close`); controllers only delegate; update `{main}api/OpenApiConfig.java` only if needed
-- [ ] T022 [US2] Implement tools `create_customer`, `update_customer`, `delete_customer`, `open_account`, `update_account`, `close_account` in `{main}mcp/BankingMcpTools.java` per `contracts/mcp-tools.md`
-- [ ] T023 [US2] Add US2 requests to `src/backend/test.http`: create customer (capture id), open two accounts (capture ids), update customer, update account label, close account with non-zero balance error, delete customer with accounts error, delete accounts-free customer success; each with `# Expected:` comment; add REST section requests for the new endpoints
+- [X] T019 [US2] In `{main}service/BankingService.java` add `updateCustomer(UUID, CustomerInput)` (name required non-blank; email format validated; `id`/`createdAt` immutable; same validation as create), `deleteCustomer(UUID)` (refuse with `customerHasAccounts()` if any account exists, including CLOSED), `updateAccount(UUID, String label)` (label max 100 chars, `VALIDATION_ERROR` otherwise), `closeAccount(UUID)` (lock row; refuse non-zero balance with `nonZeroBalance()`; already closed -> `accountClosed()`; set status CLOSED); extend `openAccount(UUID, String label)` keeping the existing one-arg behavior; add repository support (`existsByCustomerId` or equivalent) in `{main}repository/AccountRepository.java`
+- [X] T020 [US2] In `{main}service/BankingService.java` reject `deposit`, `withdraw`, and `transfer` when any involved account is CLOSED (`accountClosed()`), checked after locking and before changing balances; `getHistory` and reads remain allowed for closed accounts
+- [X] T021 [P] [US2] Add REST endpoints per `contracts/rest-additions.yaml` in `{main}api/CustomerController.java` (`PUT /api/customers/{customerId}`, `DELETE /api/customers/{customerId}` -> 204) and `{main}api/AccountController.java` (`PATCH /api/accounts/{accountId}`, `POST /api/accounts/{accountId}/close`); controllers only delegate; update `{main}api/OpenApiConfig.java` only if needed
+- [X] T022 [US2] Implement tools `create_customer`, `update_customer`, `delete_customer`, `open_account`, `update_account`, `close_account` in `{main}mcp/BankingMcpTools.java` per `contracts/mcp-tools.md`
+- [X] T023 [US2] Add US2 requests to `src/backend/test.http`: create customer (capture id), open two accounts (capture ids), update customer, update account label, close account with non-zero balance error, delete customer with accounts error, delete accounts-free customer success; each with `# Expected:` comment; add REST section requests for the new endpoints
 
 **Checkpoint**: US1 + US2 work independently; REST and MCP agree.
 
@@ -90,12 +90,12 @@
 
 ### Tests for US3
 
-- [ ] T024 [P] [US3] In `{test}mcp/McpToolsIT.java` add tests for `deposit`, `withdraw`, `transfer_funds` success (balances and history via `get_transaction_history`, also visible via REST) and errors: `INSUFFICIENT_FUNDS`, zero/negative/3-decimal amount -> `VALIDATION_ERROR`, same account -> `SAME_ACCOUNT`, unknown id -> `NOT_FOUND`, closed account -> `ACCOUNT_CLOSED`; assert no balance change after each refusal
+- [X] T024 [P] [US3] In `{test}mcp/McpToolsIT.java` add tests for `deposit`, `withdraw`, `transfer_funds` success (balances and history via `get_transaction_history`, also visible via REST) and errors: `INSUFFICIENT_FUNDS`, zero/negative/3-decimal amount -> `VALIDATION_ERROR`, same account -> `SAME_ACCOUNT`, unknown id -> `NOT_FOUND`, closed account -> `ACCOUNT_CLOSED`; assert no balance change after each refusal
 
 ### Implementation for US3
 
-- [ ] T025 [US3] Implement tools `deposit`, `withdraw`, `transfer_funds` in `{main}mcp/BankingMcpTools.java` calling `BankingService.deposit/withdraw/transfer` (amount as decimal string, passed through unchanged so existing `parseAmount` validation applies)
-- [ ] T026 [US3] Add US3 requests to `src/backend/test.http`: deposit 1000.00, withdraw 200.00, transfer_funds 300.00, `get_transaction_history` (expect newest first: transfer out, withdrawal, deposit), error cases (overdraw, negative amount, same-account transfer, closed account), and the closing sequence (withdraw all, `close_account`) with `# Expected:` comments; add a REST `GET /api/accounts/{{accountId}}/transactions` request to show MCP changes are visible through REST
+- [X] T025 [US3] Implement tools `deposit`, `withdraw`, `transfer_funds` in `{main}mcp/BankingMcpTools.java` calling `BankingService.deposit/withdraw/transfer` (amount as decimal string, passed through unchanged so existing `parseAmount` validation applies)
+- [X] T026 [US3] Add US3 requests to `src/backend/test.http`: deposit 1000.00, withdraw 200.00, transfer_funds 300.00, `get_transaction_history` (expect newest first: transfer out, withdrawal, deposit), error cases (overdraw, negative amount, same-account transfer, closed account), and the closing sequence (withdraw all, `close_account`) with `# Expected:` comments; add a REST `GET /api/accounts/{{accountId}}/transactions` request to show MCP changes are visible through REST
 
 **Checkpoint**: All three stories complete; all 16 tools implemented.
 
@@ -103,11 +103,11 @@
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T027 [P] Verify `tools/list` returns exactly the 16 tools in `contracts/mcp-tools.md`, each with description and parameter descriptions; add the assertion to `{test}mcp/McpToolsIT.java`
-- [ ] T028 [P] Add MCP usage docs (endpoint, no-auth warning, stateless transport, tool list, `.vscode/mcp.json` example, `test.http` usage) to `src/backend/README.md` if it exists, otherwise to the existing backend/workshop doc location; keep client-neutral
-- [ ] T029 Update `specs/002-banking-mcp-server/quickstart.md` if tool names, headers, or expected outputs changed during implementation
-- [ ] T030 Run `mvn -f src/backend/pom.xml verify` (Docker required) and confirm all existing 001 tests plus new tests pass
-- [ ] T031 Start the app and execute every request in `src/backend/test.http` in order; confirm each matches its `# Expected:` comment and fix the file or code where it does not
+- [X] T027 [P] Verify `tools/list` returns exactly the 16 tools in `contracts/mcp-tools.md`, each with description and parameter descriptions; add the assertion to `{test}mcp/McpToolsIT.java`
+- [X] T028 [P] Add MCP usage docs (endpoint, no-auth warning, stateless transport, tool list, `.vscode/mcp.json` example, `test.http` usage) to `src/backend/README.md` if it exists, otherwise to the existing backend/workshop doc location; keep client-neutral
+- [X] T029 Update `specs/002-banking-mcp-server/quickstart.md` if tool names, headers, or expected outputs changed during implementation
+- [X] T030 Run `mvn -f src/backend/pom.xml verify` (Docker required) and confirm all existing 001 tests plus new tests pass
+- [X] T031 Start the app and execute every request in `src/backend/test.http` in order; confirm each matches its `# Expected:` comment and fix the file or code where it does not
 
 ---
 

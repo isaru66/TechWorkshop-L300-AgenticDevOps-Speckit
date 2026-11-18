@@ -1,0 +1,597 @@
+### Banking MCP server + REST samples for the VS Code "REST Client" extension
+### (humao.rest-client). Open this file and click "Send Request" above each ### block, in order.
+###
+### - Transport: MCP Streamable HTTP, STATELESS. There is no Mcp-Session-Id header and no session handling;
+###   every POST stands alone. initialize is still shown because MCP clients send it first.
+### - Every MCP call needs: Content-Type: application/json and Accept: application/json, text/event-stream
+### - No authentication (local demo only; the app listens on 127.0.0.1).
+### - Responses are plain JSON. A tool result has content[0].text (JSON as text) and, for object results,
+###   structuredContent (used below to chain ids). Failures have result.isError = true and text "CODE: message".
+### - All data is fictional. Start the backend first (see src/backend/README.md).
+
+@baseUrl = http://127.0.0.1:8080
+@mcp = {{baseUrl}}/mcp
+@json = application/json
+@accept = application/json, text/event-stream
+
+###############################################################################
+# 1. Protocol
+###############################################################################
+
+### 1.1 initialize
+# Expected: 200; result.serverInfo.name = "local-banking-mcp"; result.capabilities.tools present.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": { "name": "rest-client", "version": "1.0.0" }
+  }
+}
+
+### 1.2 notifications/initialized
+# Expected: 202 Accepted with an empty body (notifications have no id and get no reply).
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
+}
+
+### 1.3 tools/list
+# Expected: 200; result.tools has 16 entries, each with name, description and inputSchema:
+# list_customers, search_customers, get_customer, create_customer, update_customer, delete_customer,
+# list_customer_accounts, get_account, get_account_balance, open_account, update_account, close_account,
+# deposit, withdraw, transfer_funds, get_transaction_history
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list",
+  "params": {}
+}
+
+###############################################################################
+# 2. Read tools against the seeded data
+###############################################################################
+
+### 2.1 Pick a seeded customer through REST (plain JSON, so ids can be chained)
+# Expected: 200; items[0] is a seeded customer.
+# @name seedCustomers
+GET {{baseUrl}}/api/customers?page=0&size=1
+
+###
+@seedCustomerId = {{seedCustomers.response.body.$.items[0].id}}
+@seedCustomerName = {{seedCustomers.response.body.$.items[0].name}}
+
+### 2.2 list_customers
+# Expected: result.isError = false; structuredContent.items has 3 customers, totalElements >= 100.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": { "name": "list_customers", "arguments": { "page": 0, "size": 3 } }
+}
+
+### 2.3 search_customers (case-insensitive, partial). Uses the first seeded customer's name.
+# Expected: structuredContent.items contains the seeded customer; change "query" to try email/phone fragments.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tools/call",
+  "params": { "name": "search_customers", "arguments": { "query": "{{seedCustomerName}}" } }
+}
+
+### 2.4 get_customer
+# Expected: structuredContent.id = the seeded customer id.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "tools/call",
+  "params": { "name": "get_customer", "arguments": { "customerId": "{{seedCustomerId}}" } }
+}
+
+### 2.5 list_customer_accounts
+# Expected: content[0].text is a JSON array of accounts (id, balance, status "OPEN", currency "THB").
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "tools/call",
+  "params": { "name": "list_customer_accounts", "arguments": { "customerId": "{{seedCustomerId}}" } }
+}
+
+### 2.6 Pick a seeded account through REST
+# @name seedAccounts
+GET {{baseUrl}}/api/customers/{{seedCustomerId}}/accounts
+
+###
+@seedAccountId = {{seedAccounts.response.body.$[0].id}}
+
+### 2.7 get_account
+# Expected: structuredContent.id = seed account id, status "OPEN".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 14,
+  "method": "tools/call",
+  "params": { "name": "get_account", "arguments": { "accountId": "{{seedAccountId}}" } }
+}
+
+### 2.8 get_account_balance
+# Expected: structuredContent = { accountId, currency: "THB", balance: "<amount with 2 decimals>" }.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 15,
+  "method": "tools/call",
+  "params": { "name": "get_account_balance", "arguments": { "accountId": "{{seedAccountId}}" } }
+}
+
+### 2.9 get_transaction_history (newest first, paged)
+# Expected: structuredContent.items ordered newest first; page/size/totalElements/totalPages present.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 16,
+  "method": "tools/call",
+  "params": { "name": "get_transaction_history", "arguments": { "accountId": "{{seedAccountId}}", "page": 0, "size": 5 } }
+}
+
+### 2.10 Error: unknown customer
+# Expected: result.isError = true; content[0].text = "NOT_FOUND: Customer not found".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 17,
+  "method": "tools/call",
+  "params": { "name": "get_customer", "arguments": { "customerId": "00000000-0000-0000-0000-000000000000" } }
+}
+
+### 2.11 Error: page size above 100
+# Expected: result.isError = true; text starts with "VALIDATION_ERROR:".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 18,
+  "method": "tools/call",
+  "params": { "name": "list_customers", "arguments": { "size": 101 } }
+}
+
+###############################################################################
+# 3. Manage customers and accounts (creates new fictional records)
+###############################################################################
+
+### 3.1 create_customer
+# Expected: isError = false; structuredContent.id is the new customer id (captured below).
+# @name createCustomer
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "method": "tools/call",
+  "params": {
+    "name": "create_customer",
+    "arguments": {
+      "name": "Sample Customer",
+      "englishName": "Sample Customer",
+      "email": "sample.customer@example.com",
+      "phone": "0800000000",
+      "dateOfBirth": "1990-05-01",
+      "occupation": "Engineer"
+    }
+  }
+}
+
+###
+@customerId = {{createCustomer.response.body.$.result.structuredContent.id}}
+
+### 3.2 update_customer (replaces descriptive fields; omitted fields are cleared)
+# Expected: structuredContent.name = "Sample Customer Renamed"; id and createdAt unchanged.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "method": "tools/call",
+  "params": {
+    "name": "update_customer",
+    "arguments": {
+      "customerId": "{{customerId}}",
+      "name": "Sample Customer Renamed",
+      "email": "sample.customer@example.com",
+      "phone": "0800000001"
+    }
+  }
+}
+
+### 3.3 open_account (first account)
+# Expected: structuredContent: balance "0.00", status "OPEN", currency "THB", label "Everyday".
+# @name openAccountA
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "method": "tools/call",
+  "params": { "name": "open_account", "arguments": { "customerId": "{{customerId}}", "label": "Everyday" } }
+}
+
+###
+@accountA = {{openAccountA.response.body.$.result.structuredContent.id}}
+
+### 3.4 open_account (second account)
+# Expected: another account with balance "0.00".
+# @name openAccountB
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 23,
+  "method": "tools/call",
+  "params": { "name": "open_account", "arguments": { "customerId": "{{customerId}}", "label": "Savings" } }
+}
+
+###
+@accountB = {{openAccountB.response.body.$.result.structuredContent.id}}
+
+### 3.5 update_account (label)
+# Expected: structuredContent.label = "Daily spending".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 24,
+  "method": "tools/call",
+  "params": { "name": "update_account", "arguments": { "accountId": "{{accountA}}", "label": "Daily spending" } }
+}
+
+### 3.6 Error: delete a customer that has accounts
+# Expected: isError = true; text "CUSTOMER_HAS_ACCOUNTS: Customer still has accounts and cannot be deleted".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 25,
+  "method": "tools/call",
+  "params": { "name": "delete_customer", "arguments": { "customerId": "{{customerId}}" } }
+}
+
+### 3.7 Error: invalid input (blank name)
+# Expected: isError = true; text "VALIDATION_ERROR: name is required".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 26,
+  "method": "tools/call",
+  "params": { "name": "create_customer", "arguments": { "name": " " } }
+}
+
+###############################################################################
+# 4. Move money between accountA and accountB
+###############################################################################
+
+### 4.1 deposit 1000.00 into accountA
+# Expected: structuredContent.type = "DEPOSIT", amount "1000.00", resultingBalance "1000.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 30,
+  "method": "tools/call",
+  "params": { "name": "deposit", "arguments": { "accountId": "{{accountA}}", "amount": "1000.00" } }
+}
+
+### 4.2 withdraw 200.00 from accountA
+# Expected: type "WITHDRAWAL", resultingBalance "800.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 31,
+  "method": "tools/call",
+  "params": { "name": "withdraw", "arguments": { "accountId": "{{accountA}}", "amount": "200.00" } }
+}
+
+### 4.3 transfer_funds 300.00 from accountA to accountB
+# Expected: structuredContent has id, sourceAccountId = accountA, destinationAccountId = accountB, amount "300.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 32,
+  "method": "tools/call",
+  "params": {
+    "name": "transfer_funds",
+    "arguments": { "sourceAccountId": "{{accountA}}", "destinationAccountId": "{{accountB}}", "amount": "300.00" }
+  }
+}
+
+### 4.4 get_account_balance for accountA
+# Expected: balance "500.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 33,
+  "method": "tools/call",
+  "params": { "name": "get_account_balance", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 4.5 get_account_balance for accountB
+# Expected: balance "300.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 34,
+  "method": "tools/call",
+  "params": { "name": "get_account_balance", "arguments": { "accountId": "{{accountB}}" } }
+}
+
+### 4.6 get_transaction_history for accountA
+# Expected: items newest first: TRANSFER_OUT 300.00, WITHDRAWAL 200.00, DEPOSIT 1000.00; totalElements 3.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 35,
+  "method": "tools/call",
+  "params": { "name": "get_transaction_history", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 4.7 Error: insufficient funds
+# Expected: isError = true; text "INSUFFICIENT_FUNDS: Insufficient funds"; balances unchanged.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 36,
+  "method": "tools/call",
+  "params": { "name": "withdraw", "arguments": { "accountId": "{{accountA}}", "amount": "999999.00" } }
+}
+
+### 4.8 Error: negative amount
+# Expected: isError = true; text starts with "VALIDATION_ERROR:".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 37,
+  "method": "tools/call",
+  "params": { "name": "deposit", "arguments": { "accountId": "{{accountA}}", "amount": "-5.00" } }
+}
+
+### 4.9 Error: transfer to the same account
+# Expected: isError = true; text "SAME_ACCOUNT: Source and destination accounts must differ".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 38,
+  "method": "tools/call",
+  "params": {
+    "name": "transfer_funds",
+    "arguments": { "sourceAccountId": "{{accountA}}", "destinationAccountId": "{{accountA}}", "amount": "1.00" }
+  }
+}
+
+###############################################################################
+# 5. Close accounts and delete
+###############################################################################
+
+### 5.1 Error: close an account with a balance
+# Expected: isError = true; text "NON_ZERO_BALANCE: Account balance must be zero to close it".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 40,
+  "method": "tools/call",
+  "params": { "name": "close_account", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 5.2 Empty accountA (withdraw 500.00)
+# Expected: resultingBalance "0.00".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 41,
+  "method": "tools/call",
+  "params": { "name": "withdraw", "arguments": { "accountId": "{{accountA}}", "amount": "500.00" } }
+}
+
+### 5.3 close_account accountA
+# Expected: structuredContent.status = "CLOSED".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 42,
+  "method": "tools/call",
+  "params": { "name": "close_account", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 5.4 Error: deposit into the closed account
+# Expected: isError = true; text "ACCOUNT_CLOSED: Account is closed".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 43,
+  "method": "tools/call",
+  "params": { "name": "deposit", "arguments": { "accountId": "{{accountA}}", "amount": "1.00" } }
+}
+
+### 5.5 History of a closed account stays readable
+# Expected: isError = false; totalElements 4 (deposit, withdrawal, transfer out, final withdrawal).
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 44,
+  "method": "tools/call",
+  "params": { "name": "get_transaction_history", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 5.6 Delete a customer with no accounts (create one, then delete it)
+# @name createTemp
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 45,
+  "method": "tools/call",
+  "params": { "name": "create_customer", "arguments": { "name": "Temporary Customer" } }
+}
+
+###
+@tempCustomerId = {{createTemp.response.body.$.result.structuredContent.id}}
+
+### 5.7 delete_customer
+# Expected: isError = false; structuredContent = { deleted: true, customerId: <temp id> }.
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 46,
+  "method": "tools/call",
+  "params": { "name": "delete_customer", "arguments": { "customerId": "{{tempCustomerId}}" } }
+}
+
+### 5.8 get_customer after delete
+# Expected: isError = true; text "NOT_FOUND: Customer not found".
+POST {{mcp}}
+Content-Type: {{json}}
+Accept: {{accept}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 47,
+  "method": "tools/call",
+  "params": { "name": "get_customer", "arguments": { "customerId": "{{tempCustomerId}}" } }
+}
+
+###############################################################################
+# 6. REST API sees the same data (MCP and REST share one service and database)
+###############################################################################
+
+### 6.1 Transactions of accountB through REST
+# Expected: 200; items[0].type = "TRANSFER_IN", amount "300.00" (made through MCP in 4.3).
+GET {{baseUrl}}/api/accounts/{{accountB}}/transactions
+
+### 6.2 Account A through REST
+# Expected: 200; status "CLOSED", balance "0.00", label "Daily spending".
+GET {{baseUrl}}/api/accounts/{{accountA}}
+
+### 6.3 REST additions (feature 002): update account label
+# Expected: 200; label "Savings plus".
+PATCH {{baseUrl}}/api/accounts/{{accountB}}
+Content-Type: application/json
+
+{ "label": "Savings plus" }
+
+### 6.4 REST additions: close a non-zero account
+# Expected: 409; code "NON_ZERO_BALANCE" (accountB holds 300.00).
+POST {{baseUrl}}/api/accounts/{{accountB}}/close
+
+### 6.5 REST additions: update customer
+# Expected: 200; name "Sample Customer REST".
+PUT {{baseUrl}}/api/customers/{{customerId}}
+Content-Type: application/json
+
+{ "name": "Sample Customer REST", "email": "sample.customer@example.com" }
+
+### 6.6 REST additions: delete a customer that has accounts
+# Expected: 409; code "CUSTOMER_HAS_ACCOUNTS".
+DELETE {{baseUrl}}/api/customers/{{customerId}}
