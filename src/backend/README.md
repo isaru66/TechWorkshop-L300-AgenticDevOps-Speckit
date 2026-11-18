@@ -22,6 +22,9 @@ the same banking service and PostgreSQL data: `list_customers`, `get_customer`,
 `transfer_funds`, and `get_transaction_history` (newest first). Tool failures
 return `isError: true` with text containing `<code>: <detail>`.
 
+Transfers are not idempotent, matching the REST API: repeating the same
+`transfer_funds` call moves the money again.
+
 **Demo only: there is no authentication.** Keep it bound to loopback.
 
 Try it with [`Banking.Api/test.http`](Banking.Api/test.http) (VS Code REST Client),

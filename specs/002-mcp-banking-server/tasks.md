@@ -117,3 +117,10 @@
 
 - **MVP**: Phases 1–3 (customers and accounts over `/mcp`), validate, then add transfers, then history.
 - Commit after each task or group; keep REST routes and payloads untouched.
+
+## Phase 7: Convergence
+
+- [X] T026 Run the API against a migrated PostgreSQL database and execute every request in `src/backend/Banking.Api/test.http` end to end; confirm each `# Expect` note matches the real response per plan: test.http deliverable (partial)
+- [X] T027 Walk through `specs/002-mcp-banking-server/quickstart.md` and measure typical tool-call latency to verify under 2 s per SC-005 (missing)
+- [X] T028 Run `dotnet build src/backend/Banking.Api.Tests` and confirm no nullable warnings remain in `src/backend/Banking.Api.Tests/Mcp/` (partial)
+- [X] T029 Decide and document (or test) behavior when an assistant retries the same transfer, per spec Edge Cases (partial)
