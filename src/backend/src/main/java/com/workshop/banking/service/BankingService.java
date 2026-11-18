@@ -99,7 +99,8 @@ public class BankingService {
             throw BankingException.invalid("query is required");
         }
         PageRequest pr = pageRequest(page, size, Sort.by("createdAt", "id"));
-        return customers.search("%" + query.trim().toLowerCase() + "%", pr);
+        String escaped = query.trim().toLowerCase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return customers.search("%" + escaped + "%", pr);
     }
 
     @Transactional

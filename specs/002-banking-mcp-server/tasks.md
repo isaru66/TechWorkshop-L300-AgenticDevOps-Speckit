@@ -130,3 +130,11 @@
 - **MVP**: Phases 1-3 (read-only MCP over existing data, plus `test.http` reads).
 - Then add US2 (lifecycle + REST parity), then US3 (money movement).
 - Validate after each phase with `mvn verify` and the matching `test.http` section.
+
+
+## Phase 7: Convergence
+
+- [X] T032 Escape `%`, `_` and `\` in the search text before building the LIKE pattern in `searchCustomers` in `src/backend/src/main/java/com/workshop/banking/service/BankingService.java` (and add an `escape` clause to the query in `src/backend/src/main/java/com/workshop/banking/repository/CustomerRepository.java`), and add a test in `src/backend/src/test/java/com/workshop/banking/mcp/McpToolsIT.java` proving that a query of `%` or `_` does not match every customer, per FR-003 (partial)
+- [X] T033 [P] Document in `specs/002-banking-mcp-server/contracts/rest-additions.yaml` the optional `{ "label": string }` request body now accepted by `POST /api/customers/{customerId}/accounts`, and the additive `status`/`label` fields on account responses, per plan: REST additions (partial)
+- [X] T034 [P] Document in `specs/002-banking-mcp-server/contracts/mcp-tools.md` that object results also include `structuredContent` (null fields omitted; list results such as `list_customer_accounts` return text content only) and that the text content is the full JSON, per plan: MCP tool contract (unrequested)
+- [X] T035 Add edge-case tests in `src/backend/src/test/java/com/workshop/banking/mcp/McpToolsIT.java` for the spec edge cases "simultaneous operations never produce an incorrect balance" (concurrent `deposit`/`withdraw`/`close_account` on one account ends with a consistent balance and status) and "banking data cannot be reached" (an unexpected service failure yields `isError: true` with text starting `INTERNAL_ERROR:` and no stack trace), per spec Edge Cases (partial)

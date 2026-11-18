@@ -29,4 +29,4 @@
 
 Error codes: `NOT_FOUND`, `VALIDATION_ERROR`, `INSUFFICIENT_FUNDS`, `SAME_ACCOUNT`, `CURRENCY_MISMATCH`, `ACCOUNT_CLOSED`, `NON_ZERO_BALANCE`, `CUSTOMER_HAS_ACCOUNTS`.
 
-Each tool carries a description and per-parameter descriptions so `tools/list` is self-documenting (FR-012). Result bodies reuse the existing REST DTO shapes serialized as JSON text content.
+Each tool carries a description and per-parameter descriptions so `tools/list` is self-documenting (FR-012). The text content of every result is the full JSON (REST DTO shapes). Object results additionally carry `structuredContent` (same data, null fields omitted) so clients such as REST Client can read ids without parsing text; list results (e.g. `list_customer_accounts`) return text content only.

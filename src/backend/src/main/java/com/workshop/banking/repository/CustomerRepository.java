@@ -10,7 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
-    @Query("select c from Customer c where lower(c.name) like :pattern or lower(c.englishName) like :pattern "
-            + "or lower(c.email) like :pattern or lower(c.phone) like :pattern")
+    @Query("select c from Customer c where lower(c.name) like :pattern escape '\\' "
+            + "or lower(c.englishName) like :pattern escape '\\' "
+            + "or lower(c.email) like :pattern escape '\\' or lower(c.phone) like :pattern escape '\\'")
     Page<Customer> search(@Param("pattern") String pattern, Pageable pageable);
 }

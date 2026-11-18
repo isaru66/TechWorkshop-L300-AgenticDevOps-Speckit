@@ -11,6 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +33,14 @@ class McpToolsIT extends PostgresIntegrationTest {
     @Autowired
     JsonMapper json;
 
-    private int nextId = 1;
+    private final AtomicInteger nextId = new AtomicInteger(1);
 
     // ---- protocol helpers --------------------------------------------------
 
     private JsonNode rpc(String method, Object params) throws Exception {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("jsonrpc", "2.0");
-        body.put("id", nextId++);
+        body.put("id", nextId.getAndIncrement());
         body.put("method", method);
         body.put("params", params);
         String raw = mvc.perform(post("/mcp").contentType(MediaType.APPLICATION_JSON)
@@ -141,6 +146,9 @@ class McpToolsIT extends PostgresIntegrationTest {
         assertThat(ok(call("search_customers", "query", "no-such-" + UUID.randomUUID())).get("totalElements").asInt())
                 .isZero();
         assertError(call("search_customers", "query", " "), "VALIDATION_ERROR");
+        // LIKE wildcards are literal text, not patterns
+        assertThat(ok(call("search_customers", "query", "%")).get("totalElements").asInt()).isZero();
+        assertThat(ok(call("search_customers", "query", "_")).get("totalElements").asInt()).isZero();
     }
 
     @Test
@@ -257,6 +265,78 @@ class McpToolsIT extends PostgresIntegrationTest {
         assertThat(balance(UUID.fromString(a))).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(balance(UUID.fromString(b))).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(history(UUID.fromString(a))).hasSize(1);
+    }
+
+    @Test
+    void concurrentOperationsKeepBalanceConsistent() throws Exception {
+        String account = newAccount(newCustomerId("Concurrent Mover"));
+        ok(call("deposit", "accountId", account, "amount", "100.00"));
+
+        ExecutorService pool = Executors.newFixedThreadPool(8);
+        try {
+            List<Future<Boolean>> results = new java.util.ArrayList<>();
+            for (int i = 0; i < 20; i++) {
+                results.add(pool.submit(callable("deposit", account, "5.00")));
+                results.add(pool.submit(callable("withdraw", account, "3.00")));
+            }
+            int deposits = 0;
+            int withdrawals = 0;
+            for (int i = 0; i < results.size(); i++) {
+                if (results.get(i).get()) {
+                    if (i % 2 == 0) {
+                        deposits++;
+                    } else {
+                        withdrawals++;
+                    }
+                }
+            }
+            assertThat(deposits).isEqualTo(20);
+            assertThat(withdrawals).isEqualTo(20);
+        } finally {
+            pool.shutdown();
+        }
+        assertThat(balance(UUID.fromString(account))).isEqualByComparingTo(new BigDecimal("140.00"));
+        List<Map<String, Object>> h = history(UUID.fromString(account));
+        assertThat(h).hasSize(41);
+        assertThat((BigDecimal) h.get(h.size() - 1).get("resulting_balance")).isEqualByComparingTo("140.00");
+    }
+
+    @Test
+    void closeRacingWithDepositNeverLeavesClosedAccountWithMoney() throws Exception {
+        for (int round = 0; round < 5; round++) {
+            String account = newAccount(newCustomerId("Race " + round));
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            try {
+                Future<JsonNode> deposit = pool.submit(() -> call("deposit", "accountId", account, "amount", "1.00"));
+                Future<JsonNode> close = pool.submit(() -> call("close_account", "accountId", account));
+                deposit.get();
+                close.get();
+            } finally {
+                pool.shutdown();
+            }
+            JsonNode state = ok(call("get_account", "accountId", account));
+            boolean closed = "CLOSED".equals(state.get("status").asString());
+            assertThat(closed && new BigDecimal(state.get("balance").asString()).signum() != 0)
+                    .as("closed account holds money: %s", state).isFalse();
+        }
+    }
+
+    @Test
+    void unexpectedFailureReturnsGenericError() throws Exception {
+        String account = newAccount(newCustomerId("Overflow Tester"));
+        ok(call("deposit", "accountId", account, "amount", "99999999999999999.99"));
+        // Pushes the balance past numeric(19,2): an unexpected database failure, not a business rule
+        JsonNode result = call("deposit", "accountId", account, "amount", "99999999999999999.99");
+        assertError(result, "INTERNAL_ERROR");
+        assertThat(text(result)).doesNotContain("Exception").doesNotContain("at com.").doesNotContain("SQL");
+        assertThat(balance(UUID.fromString(account))).isEqualByComparingTo(new BigDecimal("99999999999999999.99"));
+        // Server stays usable
+        assertThat(ok(call("get_account_balance", "accountId", account)).get("balance").asString())
+                .isEqualTo("99999999999999999.99");
+    }
+
+    private Callable<Boolean> callable(String tool, String accountId, String amount) {
+        return () -> !call(tool, "accountId", accountId, "amount", amount).get("isError").asBoolean();
     }
 
     @Test
