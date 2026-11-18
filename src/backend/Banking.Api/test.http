@@ -1,0 +1,152 @@
+### MCP Banking Server – VS Code REST Client (draft; copy to src/backend/Banking.Api/test.http)
+# Prereqs: API running (dotnet run, http://127.0.0.1:8080) with PostgreSQL up.
+# Stateless transport: no Mcp-Session-Id header is used or returned.
+# POST responses are Server-Sent Events ("event: message" + "data: {json}", Content-Type text/event-stream).
+# REST Client cannot parse that as JSON, so copy IDs from the "text" field of each result
+# (it is a JSON string containing "id") into the variables below by hand.
+# Tool errors: result.isError=true and text "An error occurred invoking '<tool>': <code>: <detail>".
+
+@baseUrl = http://127.0.0.1:8080
+@mcp = {{baseUrl}}/mcp
+@customerId = 00000000-0000-0000-0000-000000000000
+@accountA = 00000000-0000-0000-0000-000000000000
+@accountB = 00000000-0000-0000-0000-000000000000
+
+### 1. Initialize
+# Expect 200; result.protocolVersion, result.serverInfo.name, result.capabilities.tools
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": { "name": "rest-client", "version": "1.0" }
+  }
+}
+
+### 2. Initialized notification
+# Expect 202 Accepted, empty body
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{ "jsonrpc": "2.0", "method": "notifications/initialized" }
+
+### 3. List tools
+# Expect 13 tools: list_customers ... get_transaction_history
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{ "jsonrpc": "2.0", "id": 2, "method": "tools/list" }
+
+### 4. Create customer
+# Expect isError=false; content has id -> paste into @customerId
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 3, "method": "tools/call",
+  "params": { "name": "create_customer",
+    "arguments": { "name": "Somchai Demo", "email": "somchai@example.com" } }
+}
+
+### 5. Create account A (paste id into @accountA)
+# Expect balance "0.00", currency "THB"
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 4, "method": "tools/call",
+  "params": { "name": "create_account", "arguments": { "customerId": "{{customerId}}" } }
+}
+
+### 6. Create account B (paste id into @accountB)
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 5, "method": "tools/call",
+  "params": { "name": "create_account", "arguments": { "customerId": "{{customerId}}" } }
+}
+
+### 7. Deposit 1000.00 into A
+# Expect balance "1000.00", transaction type DEPOSIT
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 6, "method": "tools/call",
+  "params": { "name": "deposit", "arguments": { "accountId": "{{accountA}}", "amount": "1000.00" } }
+}
+
+### 8. Transfer 250.00 A -> B
+# Expect sourceBalance "750.00", destinationBalance "250.00", entries TRANSFER_OUT/TRANSFER_IN
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 7, "method": "tools/call",
+  "params": { "name": "transfer_funds",
+    "arguments": { "sourceAccountId": "{{accountA}}", "destinationAccountId": "{{accountB}}", "amount": "250.00" } }
+}
+
+### 9. Transaction history for A
+# Expect newest first: TRANSFER_OUT 250.00 (resulting 750.00), then DEPOSIT 1000.00
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 8, "method": "tools/call",
+  "params": { "name": "get_transaction_history", "arguments": { "accountId": "{{accountA}}" } }
+}
+
+### 10. Error: insufficient funds
+# Expect isError=true, text starts "insufficient_funds:"
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 9, "method": "tools/call",
+  "params": { "name": "transfer_funds",
+    "arguments": { "sourceAccountId": "{{accountB}}", "destinationAccountId": "{{accountA}}", "amount": "99999.00" } }
+}
+
+### 11. Error: delete customer that owns accounts
+# Expect isError=true, text starts "has_dependents:"
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 10, "method": "tools/call",
+  "params": { "name": "delete_customer", "arguments": { "customerId": "{{customerId}}" } }
+}
+
+### 12. Update customer
+# Expect updated phone in returned CustomerDto
+POST {{mcp}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0", "id": 11, "method": "tools/call",
+  "params": { "name": "update_customer",
+    "arguments": { "customerId": "{{customerId}}", "phone": "0812345678" } }
+}
+
+### 13. REST regression: existing API still works
+# Expect 200 with customers page
+GET {{baseUrl}}/api/customers

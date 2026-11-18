@@ -26,7 +26,7 @@ Notes:
 - DTO shapes match `Banking.Api/Contracts/ReadDtos.cs`, `TransferDtos.cs`, `MoneyOperationDtos.cs`.
 
 ## Errors
-Tool failures return `result.isError = true` with text `"<code>: <detail>"`. Codes: `invalid_input`, `invalid_amount`, `not_found`, `same_account`, `currency_mismatch`, `insufficient_funds`, `balance_limit_exceeded`, `has_dependents`, `unexpected_error`. Protocol errors (malformed JSON-RPC, unknown tool) use JSON-RPC `error`.
+Tool failures return `result.isError = true` with text `"An error occurred invoking '<tool>': <code>: <detail>"` (the SDK adds the prefix). Codes: `invalid_input`, `invalid_amount`, `not_found`, `same_account`, `currency_mismatch`, `insufficient_funds`, `balance_limit_exceeded`, `has_dependents`, `unexpected_error`. Protocol errors (malformed JSON-RPC, unknown tool) use JSON-RPC `error`.
 
 ## REST compatibility
 `/api/*` and `/health` routes, payloads, and status codes are unchanged; verified by existing tests plus a regression test.

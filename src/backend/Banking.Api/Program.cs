@@ -1,6 +1,7 @@
 using Banking.Api.Contracts;
 using Banking.Api.Data;
 using Banking.Api.Import;
+using Banking.Api.Mcp;
 using Banking.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,12 @@ builder.Services.AddScoped<BankingService>();
 builder.Services.AddSingleton<IBankingCommitObserver, BankingCommitObserver>();
 builder.Services.AddExceptionHandler<BankingExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddMcpServer()
+    .WithHttpTransport(options => options.Stateless = true)
+    .WithTools<CustomerTools>()
+    .WithTools<AccountTools>()
+    .WithTools<TransferTools>()
+    .WithTools<HistoryTools>();
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -103,6 +110,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapMcp("/mcp");
 app.MapGet("/health", async (BankingDbContext db, CancellationToken cancellationToken) =>
 {
     try

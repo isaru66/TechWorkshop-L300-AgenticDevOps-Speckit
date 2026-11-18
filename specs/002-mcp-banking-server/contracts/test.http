@@ -1,8 +1,10 @@
 ### MCP Banking Server – VS Code REST Client (draft; copy to src/backend/Banking.Api/test.http)
 # Prereqs: API running (dotnet run, http://127.0.0.1:8080) with PostgreSQL up.
 # Stateless transport: no Mcp-Session-Id header is used or returned.
-# POST responses may be SSE ("event: message" + "data: {json}"). REST Client cannot parse that
-# as JSON, so copy IDs from responses into the variables below by hand.
+# POST responses are Server-Sent Events ("event: message" + "data: {json}", Content-Type text/event-stream).
+# REST Client cannot parse that as JSON, so copy IDs from the "text" field of each result
+# (it is a JSON string containing "id") into the variables below by hand.
+# Tool errors: result.isError=true and text "An error occurred invoking '<tool>': <code>: <detail>".
 
 @baseUrl = http://127.0.0.1:8080
 @mcp = {{baseUrl}}/mcp

@@ -2,6 +2,7 @@ using Banking.Api.Contracts;
 using Banking.Api.Data;
 using Banking.Api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Banking.Api.Services;
 
@@ -151,13 +152,113 @@ public sealed class BankingService(BankingDbContext db, BankingTransactionCoordi
         BalanceDto.From(await db.Accounts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
             ?? throw BankingProblem.NotFound());
 
-    public async Task<PageResult<TransactionEntryDto>> HistoryAsync(Guid id, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PageResult<TransactionEntryDto>> HistoryAsync(Guid id, int page, int pageSize, CancellationToken cancellationToken, bool newestFirst = false)
     {
         if (!await db.Accounts.AsNoTracking().AnyAsync(x => x.Id == id, cancellationToken))
             throw BankingProblem.NotFound();
+        var entries = db.TransactionEntries.AsNoTracking().Where(x => x.AccountId == id);
         return await PageResult<TransactionEntryDto>.CreateAsync(
-            db.TransactionEntries.AsNoTracking().Where(x => x.AccountId == id).OrderBy(x => x.Sequence),
+            newestFirst ? entries.OrderByDescending(x => x.Sequence) : entries.OrderBy(x => x.Sequence),
             page, pageSize, TransactionEntryDto.From, cancellationToken);
+    }
+
+    public async Task<CustomerDto> CreateCustomerAsync(CustomerWriteRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw BankingProblem.InvalidInput("Name is required.");
+        var customer = new Customer
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name.Trim(),
+            CreatedAt = TruncatedNow(),
+            EnglishName = request.EnglishName,
+            Email = request.Email,
+            Phone = request.Phone,
+            AddressLine = request.AddressLine,
+            Subdistrict = request.Subdistrict,
+            District = request.District,
+            Province = request.Province,
+            Postcode = request.Postcode,
+            DateOfBirth = request.DateOfBirth,
+            Occupation = request.Occupation,
+            NationalId = request.NationalId
+        };
+        db.Customers.Add(customer);
+        await SaveWriteAsync(cancellationToken);
+        return CustomerDto.From(customer);
+    }
+
+    public async Task<CustomerDto> UpdateCustomerAsync(Guid id, CustomerWriteRequest request, CancellationToken cancellationToken)
+    {
+        if (request.Name is not null && string.IsNullOrWhiteSpace(request.Name))
+            throw BankingProblem.InvalidInput("Name cannot be blank.");
+        var customer = await db.Customers.SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
+            ?? throw BankingProblem.NotFound();
+        if (request.Name is not null) customer.Name = request.Name.Trim();
+        customer.EnglishName = request.EnglishName ?? customer.EnglishName;
+        customer.Email = request.Email ?? customer.Email;
+        customer.Phone = request.Phone ?? customer.Phone;
+        customer.AddressLine = request.AddressLine ?? customer.AddressLine;
+        customer.Subdistrict = request.Subdistrict ?? customer.Subdistrict;
+        customer.District = request.District ?? customer.District;
+        customer.Province = request.Province ?? customer.Province;
+        customer.Postcode = request.Postcode ?? customer.Postcode;
+        customer.DateOfBirth = request.DateOfBirth ?? customer.DateOfBirth;
+        customer.Occupation = request.Occupation ?? customer.Occupation;
+        customer.NationalId = request.NationalId ?? customer.NationalId;
+        await SaveWriteAsync(cancellationToken);
+        return CustomerDto.From(customer);
+    }
+
+    public async Task DeleteCustomerAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var customer = await db.Customers.SingleOrDefaultAsync(x => x.Id == id, cancellationToken)
+            ?? throw BankingProblem.NotFound();
+        if (await db.Accounts.AnyAsync(x => x.CustomerId == id, cancellationToken))
+            throw BankingProblem.HasDependents("The customer still owns accounts and cannot be deleted.");
+        db.Customers.Remove(customer);
+        await SaveWriteAsync(cancellationToken);
+    }
+
+    public async Task<AccountDto> CreateAccountAsync(Guid customerId, CancellationToken cancellationToken)
+    {
+        if (!await db.Customers.AnyAsync(x => x.Id == customerId, cancellationToken))
+            throw BankingProblem.NotFound();
+        var account = new Account { Id = Guid.NewGuid(), CustomerId = customerId, Currency = "THB", Balance = 0m, CreatedAt = TruncatedNow() };
+        db.Accounts.Add(account);
+        await SaveWriteAsync(cancellationToken);
+        return AccountDto.From(account);
+    }
+
+    public async Task DeleteAccountAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await coordinator.AcquireWriterLockAsync(cancellationToken);
+        var account = (await coordinator.LockAccountsAsync([id], cancellationToken)).SingleOrDefault()
+            ?? throw BankingProblem.NotFound();
+        await db.Entry(account).ReloadAsync(cancellationToken);
+        if (account.Balance != 0m ||
+            await db.TransactionEntries.AnyAsync(x => x.AccountId == id || x.CounterpartyAccountId == id, cancellationToken) ||
+            await db.Transfers.AnyAsync(x => x.SourceAccountId == id || x.DestinationAccountId == id, cancellationToken))
+            throw BankingProblem.HasDependents("The account has a balance or transaction history and cannot be deleted.");
+        db.Accounts.Remove(account);
+        await SaveWriteAsync(cancellationToken);
+        await coordinator.CommitAsync(transaction, cancellationToken);
+    }
+
+    private static DateTimeOffset TruncatedNow()
+    {
+        var now = DateTimeOffset.UtcNow;
+        return now.AddTicks(-(now.Ticks % 10));
+    }
+
+    private async Task SaveWriteAsync(CancellationToken cancellationToken)
+    {
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
+        {
+            throw BankingProblem.HasDependents("The record is referenced by other records.");
+        }
     }
 
     public async Task<TransactionEntryDto> EntryAsync(Guid id, CancellationToken cancellationToken) =>
